@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_man.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/shell
-# date:       2020-08-05T13:29:26+0200
+# date:       2020-08-06T08:23:14+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to search and open man pages
@@ -21,6 +21,6 @@ fi
 apropos -l '' \
     | awk '{print $1, $2}' \
     | sort \
-    | fzf -m -e -i --preview "man {1}" \
+    | fzf -m -e -i --preview "man {1}" --preview-window "right:70%" \
     | tr -d ' ' \
     | xargs -ro man
