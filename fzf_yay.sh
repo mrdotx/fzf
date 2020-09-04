@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_yay.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/shell
-# date:       2020-09-04T18:23:33+0200
+# date:       2020-09-04T18:32:27+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to install/remove packages with yay
@@ -19,7 +19,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 # menu
-select=$(printf "install packages\nremove installed packages\nremove explicit installed packages\nremove installed packages without dependencies\nremove installed packages from aur\nexit\n" \
+select=$(printf "install packages\nremove installed packages\nremove explicit installed packages\nremove installed packages without dependencies\nremove installed packages from aur" \
     | fzf -e -i)
 
 # yay package lists
