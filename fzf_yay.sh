@@ -3,27 +3,26 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_yay.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/shell
-# date:       2020-08-06T08:26:01+0200
+# date:       2020-09-04T18:23:33+0200
 
 script=$(basename "$0")
-help="$script [-h/--help] -- script to install or remove packages with yay
+help="$script [-h/--help] -- script to install/remove packages with yay
   Usage:
-    $script [-s/-r/-e/-d/-a]
-
-  Settings:
-    [-s] = install packages from pacman or aur
-    [-r] = remove installed packages from pacman or aur
-    [-e] = remove explicit installed packages from pacman or aur
-    [-d] = remove installed packages without dependencies from pacman or aur
-    [-a] = remove installed packages from aur
+    $script
 
   Examples:
-    $script -s
-    $script -r
-    $script -e
-    $script -d
-    $script -a"
+    $script"
 
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    printf "%s\n" "$help"
+    exit 0
+fi
+
+# menu
+select=$(printf "install packages\nremove installed packages\nremove explicit installed packages\nremove installed packages without dependencies\nremove installed packages from aur\nexit\n" \
+    | fzf -e -i)
+
+# yay package lists
 execute() {
     search_options="$1"
     process_options="$2"
@@ -33,24 +32,27 @@ execute() {
         | xargs -ro yay -"$process_options"
 }
 
-case "$1" in
-    -s)
+# select executables
+case "$select" in
+    "install packages")
         execute "Slq" "S"
         ;;
-    -r)
+    "remove installed packages")
         execute "Qq" "Rsn"
         ;;
-    -e)
+    "remove explicit installed packages")
         execute "Qqe" "Rsn"
         ;;
-    -a)
-        execute "Qmq" "Rsn"
-        ;;
-    -d)
+    "remove installed packages without dependencies")
         execute "Qqt" "Rsn"
         ;;
+    "remove installed packages from aur")
+        execute "Qmq" "Rsn"
+        ;;
     *)
-        printf "%s\n" "$help"
         exit 0
         ;;
 esac
+
+# back to menu
+fzf_yay.sh
