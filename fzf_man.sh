@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_man.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/shell
-# date:       2020-08-06T08:23:14+0200
+# date:       2020-09-21T18:40:50+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to search and open man pages
@@ -19,7 +19,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 apropos -l '' \
-    | awk '{print $1, $2}' \
+    | cut -d ' ' -f1,2 \
     | sort \
     | fzf -m -e -i --preview "man {1}" --preview-window "right:70%" \
     | tr -d ' ' \
