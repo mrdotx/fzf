@@ -2,8 +2,8 @@
 
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_yay.sh
 # author:     klassiker [mrdotx]
-# github:     https://github.com/mrdotx/shell
-# date:       2020-09-21T18:43:56+0200
+# github:     https://github.com/mrdotx/fzf
+# date:       2020-09-22T20:23:16+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to install/remove packages with yay
@@ -27,8 +27,7 @@ execute() {
     search_options="$1"
     process_options="$2"
     yay -"$search_options" \
-        | fzf -m -e -i --preview "cat <(yay -Si {1}) <(yay -Fl {1} \
-            | cut -d ' ' -f2)" --preview-window "right:70%" \
+        | fzf -m -e -i --preview "yay -Si {1}" --preview-window "right:70%" \
         | xargs -ro yay -"$process_options"
 }
 
