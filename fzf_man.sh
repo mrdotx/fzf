@@ -2,8 +2,8 @@
 
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_man.sh
 # author:     klassiker [mrdotx]
-# github:     https://github.com/mrdotx/shell
-# date:       2020-09-21T18:40:50+0200
+# github:     https://github.com/mrdotx/fzf
+# date:       2020-09-22T19:51:46+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to search and open man pages
