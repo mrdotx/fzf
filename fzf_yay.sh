@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_yay.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-09-22T20:23:16+0200
+# date:       2020-09-26T14:04:15+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to install/remove packages with yay
@@ -52,6 +52,3 @@ case "$select" in
         exit 0
         ;;
 esac
-
-# back to menu
-fzf_yay.sh
