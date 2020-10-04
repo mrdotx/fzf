@@ -3,10 +3,10 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-10-03T20:23:09+0200
+# date:       2020-10-04T11:51:42+0200
 
 script=$(basename "$0")
-help="$script [-h/--help] -- script to manage deleted files/folders with trash-cli
+help="$script [-h/--help] -- script to manage files/folders with trash-cli
   Usage:
     $script
 
@@ -19,19 +19,35 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 # menu
-select=$(printf "1) restore from trash\n2) remove selected files/folders from trash\n3) remove trash older than 7 days\n4) remove trash older then 30 days\n5) empty trash" \
-    | fzf -e -i --cycle --preview "trash-list" --preview-window "right:70%")
+select=$(printf "1) restore from trash\n2) empty trash\n3) remove selected files/folders from trash\n4) remove trash older than 7 days\n5) remove trash older then 30 days\n6) put to trash" \
+    | fzf -e -i --preview "trash-list" --preview-window "right:60%")
 
 # remove selected files/folders from trash
 trash_remove() {
     objects=$(trash-list | cut -d ' ' -f3 \
-        | fzf -m -e -i --cycle --preview "trash-list | grep {1}" --preview-window "right:70%")
-
-    [ -z "$objects" ] \
-        && exit 1
+        | fzf -m -e -i --cycle --preview "trash-list | grep {1}$" --preview-window "right:60%")
 
     for f in $objects; do
         trash-rm "$f"
+    done
+}
+
+# put to trash
+trash_put() {
+    objects=$(find . -maxdepth 1 \
+            | sed 1d \
+            | cut -b3- \
+            | sort \
+            | fzf -m -e -i --cycle --preview "highlight \
+                --style=pablo \
+                --max-size=262143 \
+                --replace-tabs=8 \
+                --out-format=xterm256 \
+                --force {1}" \
+                --preview-window "right:60%")
+
+    for f in $objects; do
+        trash-put "$(pwd)/$f"
     done
 }
 
@@ -40,17 +56,20 @@ case "$select" in
     "1) restore from trash")
         trash-restore
         ;;
-    "2) remove selected files/folders from trash")
+    "2) empty trash")
+        trash-empty
+        ;;
+    "3) remove selected files/folders from trash")
         trash_remove
         ;;
-    "3) remove trash older then 7 days")
+    "4) remove trash older then 7 days")
         trash-empty 7
         ;;
-    "4) remove trash older then 30 days")
+    "5) remove trash older then 30 days")
         trash-empty 30
         ;;
-    "5) empty trash")
-        trash-empty
+    "6) put to trash")
+        trash_put
         ;;
     *)
         exit 0
