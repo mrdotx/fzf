@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-10-04T11:51:42+0200
+# date:       2020-10-04T13:17:29+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to manage files/folders with trash-cli
@@ -20,12 +20,12 @@ fi
 
 # menu
 select=$(printf "1) restore from trash\n2) empty trash\n3) remove selected files/folders from trash\n4) remove trash older than 7 days\n5) remove trash older then 30 days\n6) put to trash" \
-    | fzf -e -i --preview "trash-list" --preview-window "right:60%")
+    | fzf -e -i --preview "trash-list" --preview-window "right:60%:wrap")
 
 # remove selected files/folders from trash
 trash_remove() {
     objects=$(trash-list | cut -d ' ' -f3 \
-        | fzf -m -e -i --cycle --preview "trash-list | grep {1}$" --preview-window "right:60%")
+        | fzf -m -e -i --preview "trash-list | grep {1}$" --preview-window "right:60%:wrap")
 
     for f in $objects; do
         trash-rm "$f"
@@ -38,7 +38,7 @@ trash_put() {
             | sed 1d \
             | cut -b3- \
             | sort \
-            | fzf -m -e -i --cycle --preview "highlight \
+            | fzf -m -e -i --preview "highlight \
                 --style=pablo \
                 --max-size=262143 \
                 --replace-tabs=8 \
