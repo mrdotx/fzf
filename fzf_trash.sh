@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-10-04T13:17:29+0200
+# date:       2020-10-06T13:37:30+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to manage files/folders with trash-cli
@@ -27,8 +27,8 @@ trash_remove() {
     objects=$(trash-list | cut -d ' ' -f3 \
         | fzf -m -e -i --preview "trash-list | grep {1}$" --preview-window "right:60%:wrap")
 
-    for f in $objects; do
-        trash-rm "$f"
+    for entry in $objects; do
+        trash-rm "$entry"
     done
 }
 
@@ -46,8 +46,8 @@ trash_put() {
                 --force {1}" \
                 --preview-window "right:60%")
 
-    for f in $objects; do
-        trash-put "$(pwd)/$f"
+    for entry in $objects; do
+        trash-put "$(pwd)/$entry"
     done
 }
 
