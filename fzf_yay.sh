@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_yay.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-09-26T14:04:15+0200
+# date:       2020-10-13T22:17:19+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to install/remove packages with yay
@@ -19,7 +19,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 # menu
-select=$(printf "install packages\nremove installed packages\nremove explicit installed packages\nremove installed packages without dependencies\nremove installed packages from aur" \
+select=$(printf "1) install packages\n2) remove installed packages\n3) remove explicit installed packages\n4) remove installed packages without dependencies\n5) remove installed packages from aur" \
     | fzf -e -i --cycle)
 
 # yay package lists
@@ -33,19 +33,19 @@ execute() {
 
 # select executables
 case "$select" in
-    "install packages")
+    "1) install packages")
         execute "Slq" "S"
         ;;
-    "remove installed packages")
+    "2) remove installed packages")
         execute "Qq" "Rsn"
         ;;
-    "remove explicit installed packages")
+    "3) remove explicit installed packages")
         execute "Qqe" "Rsn"
         ;;
-    "remove installed packages without dependencies")
+    "4) remove installed packages without dependencies")
         execute "Qqt" "Rsn"
         ;;
-    "remove installed packages from aur")
+    "5) remove installed packages from aur")
         execute "Qmq" "Rsn"
         ;;
     *)
