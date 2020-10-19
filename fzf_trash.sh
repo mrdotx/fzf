@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-10-18T18:36:50+0200
+# date:       2020-10-19T19:47:47+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to manage files/folders with trash-cli
@@ -13,9 +13,10 @@ help="$script [-h/--help] -- script to manage files/folders with trash-cli
   Examples:
     $script"
 
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    printf "%s\n" "$help"
-    exit 0
+if [ "$1" = "-h" ] \
+    || [ "$1" = "--help" ]; then
+        printf "%s\n" "$help"
+        exit 0
 fi
 
 # menu

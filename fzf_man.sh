@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_man.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-09-22T19:51:46+0200
+# date:       2020-10-19T19:47:25+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to search and open man pages
@@ -13,9 +13,10 @@ help="$script [-h/--help] -- script to search and open man pages
   Examples:
     $script"
 
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    printf "%s\n" "$help"
-    exit 0
+if [ "$1" = "-h" ] \
+    || [ "$1" = "--help" ]; then
+        printf "%s\n" "$help"
+        exit 0
 fi
 
 apropos -l '' \

@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_yay.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-10-17T11:27:48+0200
+# date:       2020-10-19T19:48:31+0200
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to install/remove packages with yay
@@ -13,9 +13,10 @@ help="$script [-h/--help] -- script to install/remove packages with yay
   Examples:
     $script"
 
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    printf "%s\n" "$help"
-    exit 0
+if [ "$1" = "-h" ] \
+    || [ "$1" = "--help" ]; then
+        printf "%s\n" "$help"
+        exit 0
 fi
 
 # menu
