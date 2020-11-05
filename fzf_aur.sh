@@ -1,12 +1,12 @@
 #!/bin/sh
 
-# path:       /home/klassiker/.local/share/repos/fzf/fzf_yay.sh
+# path:       /home/klassiker/.local/share/repos/fzf/fzf_aur.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-10-19T19:48:31+0200
+# date:       2020-11-05T14:02:31+0100
 
 script=$(basename "$0")
-help="$script [-h/--help] -- script to install/remove packages with yay
+help="$script [-h/--help] -- script to install/remove packages from aur
   Usage:
     $script
 
@@ -29,13 +29,13 @@ select=$(printf "%s\n" \
     | fzf -e -i --cycle \
 )
 
-# yay package lists
+# aur package lists
 execute() {
     search_options="$1"
     process_options="$2"
-    yay -"$search_options" \
-        | fzf -m -e -i --preview "yay -Si {1}" --preview-window "right:70%" \
-        | xargs -ro yay -"$process_options"
+    paru -"$search_options" \
+        | fzf -m -e -i --preview "paru -Si {1}" --preview-window "right:70%" \
+        | xargs -ro paru -"$process_options"
 }
 
 # select executables
