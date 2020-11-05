@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-11-03T14:40:26+0100
+# date:       2020-11-05T12:34:33+0100
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to manage files/folders with trash-cli
@@ -46,12 +46,7 @@ trash_put() {
             | sed 1d \
             | cut -b3- \
             | sort \
-            | fzf -m -e -i --preview "highlight \
-                --style=pablo \
-                --max-size=262143 \
-                --replace-tabs=4 \
-                --out-format=xterm256 \
-                --force {1}" \
+            | fzf -m -e -i --preview "highlight {1}" \
                 --preview-window "right:60%")
 
     for entry in $objects; do
