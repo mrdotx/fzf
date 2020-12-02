@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_aur.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-02T10:50:53+0100
+# date:       2020-12-02T11:18:35+0100
 
 script=$(basename "$0")
 help="$script [-h/--help] -- script to install/remove packages from aur
@@ -21,8 +21,8 @@ fi
 
 # menu
 select=$(printf "%s\n" \
-            "1) show pacman.log in pager" \
-            "2) install packages" \
+            "1) install packages" \
+            "2) show pacman.log in pager" \
             "3) remove installed packages" \
             "4) remove explicit installed packages" \
             "5) remove installed packages without dependencies" \
@@ -35,32 +35,30 @@ select=$(printf "%s\n" \
 
 # packages
 execute() {
-    search_options="$1"
-    process_options="$2"
-    paru -"$search_options" \
-        | fzf -m -e -i --preview "paru -Si {1}" --preview-window "right:70%" \
-        | xargs -ro paru -"$process_options"
+    paru -"$1" \
+        | fzf -m -e -i --preview "paru -$2 {1}" --preview-window "right:70%" \
+        | xargs -ro paru -"$3"
 }
 
 # select executables
 case "$select" in
-    "1) show pacman.log in pager")
+    "1) install packages")
+        execute "Slq" "Sii" "S"
+        ;;
+    "2) show pacman.log in pager")
         $PAGER /var/log/pacman.log
         ;;
-    "2) install packages")
-        execute "Slq" "S"
-        ;;
     "3) remove installed packages")
-        execute "Qq" "Rsn"
+        execute "Qq" "Qlii" "Rsn"
         ;;
     "4) remove explicit installed packages")
-        execute "Qqe" "Rsn"
+        execute "Qqe" "Qlii" "Rsn"
         ;;
     "5) remove installed packages without dependencies")
-        execute "Qqt" "Rsn"
+        execute "Qqt" "Qlii" "Rsn"
         ;;
     "6) remove installed packages from aur")
-        execute "Qmq" "Rsn"
+        execute "Qmq" "Qlii" "Rsn"
         ;;
     *)
         exit 0
