@@ -3,8 +3,9 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_man.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-11-15T11:37:07+0100
+# date:       2020-12-23T15:33:46+0100
 
+# help
 script=$(basename "$0")
 help="$script [-h/--help] -- script to search and open man pages
   Usage:
@@ -19,6 +20,7 @@ if [ "$1" = "-h" ] \
         exit 0
 fi
 
+# execute
 apropos -l '' \
     | cut -d ' ' -f1,2 \
     | sort \
