@@ -3,15 +3,24 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_aur.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-02T11:42:58+0100
+# date:       2020-12-23T15:36:28+0100
 
+# config
+aur_helper="paru"
+pacman_log="/var/log/pacman.log"
+
+# help
 script=$(basename "$0")
-help="$script [-h/--help] -- script to install/remove packages from aur
+help="$script [-h/--help] -- script to install/remove/update packages with aur helper
   Usage:
     $script
 
   Examples:
-    $script"
+    $script
+
+  Config:
+    aur_helper = $aur_helper
+    pacman_log = $pacman_log"
 
 if [ "$1" = "-h" ] \
     || [ "$1" = "--help" ]; then
@@ -27,17 +36,38 @@ select=$(printf "%s\n" \
             "4) remove installed packages without dependencies" \
             "5) remove installed packages from aur" \
             "6) show pacman.log in pager" \
-    | fzf -e -i --cycle --preview "grep \"$(tail -n1 /var/log/pacman.log \
-        | cut -d'T' -f1 \
-        | tr -d '\[')\" /var/log/pacman.log \
-        | tac" --preview-window "right:70%" \
+            "7) update packages" \
+    | fzf -e -i --cycle --preview "case {1} in
+            7*)
+                checkupdates
+                $aur_helper -Qua
+                ;;
+            6*)
+                grep \"$(tail -n1 $pacman_log \
+                    | cut -d'T' -f1 \
+                    | tr -d '\[')\" $pacman_log \
+                    | tac
+                ;;
+            5*)
+                $aur_helper -Qmq
+                ;;
+            4*)
+                $aur_helper -Qqt
+                ;;
+            3*)
+                $aur_helper -Qqe
+                ;;
+            2*)
+                $aur_helper -Qq
+                ;;
+        esac" --preview-window "right:70%" \
 )
 
 # packages
 execute() {
-    paru -"$1" \
-        | fzf -m -e -i --preview "paru -$2 {1}" --preview-window "right:70%" \
-        | xargs -ro paru -"$3"
+    $aur_helper -"$1" \
+        | fzf -m -e -i --preview "$aur_helper -$2 {1}" --preview-window "right:70%" \
+        | xargs -ro $aur_helper -"$3"
 }
 
 # select executables
@@ -59,6 +89,9 @@ case "$select" in
         ;;
     "6) show pacman.log in pager")
         $PAGER /var/log/pacman.log
+        ;;
+    "7) update packages")
+        $aur_helper -Syu --needed
         ;;
     *)
         exit 0
