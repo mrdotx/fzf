@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_aur.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-26T20:51:49+0100
+# date:       2020-12-26T23:44:07+0100
 
 # config
 aur_helper="paru"
@@ -61,7 +61,7 @@ while true; do
                 7*)
                     grep \"$(tail -n1 $pacman_log \
                         | cut -d'T' -f1 \
-                        | tr -d '\[')\" $pacman_log \
+                        | tr -d '\[').*\[ALPM\].*(.*)\" $pacman_log \
                         | tac
                     ;;
             esac" \
