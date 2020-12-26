@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-26T14:37:29+0100
+# date:       2020-12-26T20:40:48+0100
 
 # help
 script=$(basename "$0")
@@ -20,66 +20,68 @@ if [ "$1" = "-h" ] \
         exit 0
 fi
 
-# menu
-select=$(printf "%s\n" \
-            "1) restore from trash" \
-            "2) empty trash" \
-            "3) remove trash [select objects]" \
-            "4) remove trash [older than 7 days]" \
-            "5) remove trash [older than 30 days]" \
-            "6) put to trash" \
-    | fzf -e -i --preview "trash-list" \
-        --preview-window "right:60%:wrap" \
-)
-
-# remove selected files/folders from trash
-trash_remove() {
-    objects=$(trash-list | cut -d ' ' -f3 \
-        | fzf -m -e -i --preview "trash-list \
-            | grep {1}$" --preview-window "right:60%:wrap" \
+while true; do
+    # menu
+    select=$(printf "%s\n" \
+                "1) restore from trash" \
+                "2) empty trash" \
+                "3) remove trash [select objects]" \
+                "4) remove trash [older than 7 days]" \
+                "5) remove trash [older than 30 days]" \
+                "6) put to trash" \
+        | fzf -e -i --preview "trash-list" \
+            --preview-window "right:60%:wrap" \
     )
 
-    for entry in $objects; do
-        trash-rm "$entry"
-    done
-}
+    # remove selected files/folders from trash
+    trash_remove() {
+        objects=$(trash-list | cut -d ' ' -f3 \
+            | fzf -m -e -i --preview "trash-list | grep {1}$" \
+                --preview-window "right:60%:wrap" \
+        )
 
-# put to trash
-trash_put() {
-    objects=$(find . -maxdepth 1 \
-            | sed 1d \
-            | cut -b3- \
-            | sort \
-            | fzf -m -e -i --preview "highlight {1}" \
-                --preview-window "right:60%" \
-    )
+        for entry in $objects; do
+            trash-rm "$entry"
+        done
+    }
 
-    for entry in $objects; do
-        trash-put "$(pwd)/$entry"
-    done
-}
+    # put to trash
+    trash_put() {
+        objects=$(find . -maxdepth 1 \
+                | sed 1d \
+                | cut -b3- \
+                | sort \
+                | fzf -m -e -i --preview "highlight {1}" \
+                    --preview-window "right:60%" \
+        )
 
-# select executables
-case "$select" in
-    "1) restore from trash")
-        trash-restore
-        ;;
-    "2) empty trash")
-        trash-empty
-        ;;
-    "3) remove trash [select objects]")
-        trash_remove
-        ;;
-    "4) remove trash [older than 7 days]")
-        trash-empty 7
-        ;;
-    "5) remove trash [older than 30 days]")
-        trash-empty 30
-        ;;
-    "6) put to trash")
-        trash_put
-        ;;
-    *)
-        exit 0
-        ;;
-esac
+        for entry in $objects; do
+            trash-put "$(pwd)/$entry"
+        done
+    }
+
+    # select executables
+    case "$select" in
+        "1) restore from trash")
+            trash-restore
+            ;;
+        "2) empty trash")
+            trash-empty
+            ;;
+        "3) remove trash [select objects]")
+            trash_remove
+            ;;
+        "4) remove trash [older than 7 days]")
+            trash-empty 7
+            ;;
+        "5) remove trash [older than 30 days]")
+            trash-empty 30
+            ;;
+        "6) put to trash")
+            trash_put
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
