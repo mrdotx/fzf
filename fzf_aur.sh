@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_aur.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-23T15:36:28+0100
+# date:       2020-12-26T13:56:04+0100
 
 # config
 aur_helper="paru"
@@ -11,7 +11,7 @@ pacman_log="/var/log/pacman.log"
 
 # help
 script=$(basename "$0")
-help="$script [-h/--help] -- script to install/remove/update packages with aur helper
+help="$script [-h/--help] -- script to manage packages with aur helper
   Usage:
     $script
 
@@ -30,35 +30,38 @@ fi
 
 # menu
 select=$(printf "%s\n" \
-            "1) install packages" \
-            "2) remove installed packages" \
-            "3) remove explicit installed packages" \
-            "4) remove installed packages without dependencies" \
-            "5) remove installed packages from aur" \
-            "6) show pacman.log in pager" \
-            "7) update packages" \
+            "1) install" \
+            "2) update" \
+            "3) remove" \
+            "4) remove [explicit installed]" \
+            "5) remove [without dependencies]" \
+            "6) remove [from aur]" \
+            "7) show pacman.log" \
     | fzf -e -i --cycle --preview "case {1} in
-            7*)
+            1*)
+                $aur_helper -Slq
+                ;;
+            2*)
                 checkupdates
                 $aur_helper -Qua
                 ;;
+            3*)
+                $aur_helper -Qq
+                ;;
+            4*)
+                $aur_helper -Qqe
+                ;;
+            5*)
+                $aur_helper -Qqt
+                ;;
             6*)
+                $aur_helper -Qmq
+                ;;
+            7*)
                 grep \"$(tail -n1 $pacman_log \
                     | cut -d'T' -f1 \
                     | tr -d '\[')\" $pacman_log \
                     | tac
-                ;;
-            5*)
-                $aur_helper -Qmq
-                ;;
-            4*)
-                $aur_helper -Qqt
-                ;;
-            3*)
-                $aur_helper -Qqe
-                ;;
-            2*)
-                $aur_helper -Qq
                 ;;
         esac" --preview-window "right:70%" \
 )
@@ -72,26 +75,26 @@ execute() {
 
 # select executables
 case "$select" in
-    "1) install packages")
+    "1) install")
         execute "Slq" "Sii" "S"
         ;;
-    "2) remove installed packages")
+    "2) update")
+        $aur_helper -Syu --needed
+        ;;
+    "3) remove")
         execute "Qq" "Qlii" "Rsn"
         ;;
-    "3) remove explicit installed packages")
+    "4) remove [explicit installed]")
         execute "Qqe" "Qlii" "Rsn"
         ;;
-    "4) remove installed packages without dependencies")
+    "5) remove [without dependencies]")
         execute "Qqt" "Qlii" "Rsn"
         ;;
-    "5) remove installed packages from aur")
+    "6) remove [from aur]")
         execute "Qmq" "Qlii" "Rsn"
         ;;
-    "6) show pacman.log in pager")
+    "7) show pacman.log")
         $PAGER /var/log/pacman.log
-        ;;
-    "7) update packages")
-        $aur_helper -Syu --needed
         ;;
     *)
         exit 0
