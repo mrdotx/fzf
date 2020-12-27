@@ -3,10 +3,12 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-27T12:44:08+0100
+# date:       2020-12-27T16:04:55+0100
 
 # config
 auth="doas"
+show="$PAGER"
+edit="$EDITOR"
 aur_helper="paru"
 pacman_log="/var/log/pacman.log"
 pacman_mirrors="/etc/pacman.d/mirrorlist"
@@ -38,43 +40,52 @@ fi
 while true; do
     # menu
     select=$(printf "%s\n" \
-                "1) install" \
-                "2) update" \
-                "3) update [manjaro mirrorlist]" \
-                "4) remove" \
-                "5) remove [explicit installed]" \
-                "6) remove [without dependencies]" \
-                "7) remove [from aur]" \
-                "8) show pacman.log" \
+                " 1) install" \
+                " 2) update" \
+                " 3) remove" \
+                " 4) remove [explicit installed]" \
+                " 5) remove [without dependencies]" \
+                " 6) remove [from aur]" \
+                " 7) remove [orphan]" \
+                " 8) mirrorlist [update]" \
+                " 9) clean cache" \
+                "10) show pacman.log" \
         | fzf -e -i --cycle --preview "case {1} in
-                1*)
-                    $aur_helper -Slq
-                    ;;
-                2*)
-                    checkupdates
-                    $aur_helper -Qua
-                    ;;
-                3*)
-                    cat $pacman_mirrors
-                    ;;
-                4*)
-                    $aur_helper -Qq
-                    ;;
-                5*)
-                    $aur_helper -Qqe
-                    ;;
-                6*)
-                    $aur_helper -Qqt
-                    ;;
-                7*)
-                    $aur_helper -Qmq
-                    ;;
-                8*)
+                10*)
                     grep \".*\[ALPM\].*(.*)\" $pacman_log \
                         | grep \"$(grep ".*[ALPM].*(.*)" $pacman_log \
                             | tail -n1 \
                             | cut -b 2-11)\" \
                         | tac
+                    ;;
+                9*)
+                    $auth paccache -dvk2
+                    $auth paccache -dvuk0
+                    ;;
+                8*)
+                    cat $pacman_mirrors
+                    ;;
+                7*)
+                    $aur_helper -Qdt
+                    ;;
+                6*)
+                    $aur_helper -Qmq
+                    ;;
+                5*)
+                    $aur_helper -Qqt
+                    ;;
+                4*)
+                    $aur_helper -Qqe
+                    ;;
+                3*)
+                    $aur_helper -Qq
+                    ;;
+                2*)
+                    checkupdates
+                    $aur_helper -Qua
+                    ;;
+                1*)
+                    $aur_helper -Slq
                     ;;
             esac" \
                 --preview-window "right:70%" \
@@ -97,32 +108,43 @@ while true; do
 
     # select executable
     case "$select" in
-        "1) install")
+        " 1) install")
             execute "Slq" "Sii" "S"
             ;;
-        "2) update")
+        " 2) update")
             $aur_helper -Syu --needed
             pause
             ;;
-        "3) update [manjaro mirrorlist]")
-            $auth pacman-mirrors -c Germany -t 3 \
-                && $auth pacman -Syyu
-            pause
-            ;;
-        "4) remove")
+        " 3) remove")
             execute "Qq" "Qlii" "Rsn"
             ;;
-        "5) remove [explicit installed]")
+        " 4) remove [explicit installed]")
             execute "Qqe" "Qlii" "Rsn"
             ;;
-        "6) remove [without dependencies]")
+        " 5) remove [without dependencies]")
             execute "Qqt" "Qlii" "Rsn"
             ;;
-        "7) remove [from aur]")
+        " 6) remove [from aur]")
             execute "Qmq" "Qlii" "Rsn"
             ;;
-        "8) show pacman.log")
-            $PAGER /var/log/pacman.log
+        " 7) remove [orphan]")
+            execute "Qdt" "Qlii" "Rsn"
+            ;;
+        " 8) mirrorlist [update]")
+            if command -v pacman-mirrors >/dev/null 2>&1; then
+                $auth pacman-mirrors -c Germany -t 3 \
+                    && $auth pacman -Syyu
+                pause
+            else
+                $auth "$edit" $pacman_mirrors
+            fi
+            ;;
+        " 9) clean cache")
+            $auth paccache -rvk2
+            $auth paccache -rvuk0
+            ;;
+        "10) show pacman.log")
+            $show /var/log/pacman.log
             ;;
         *)
             break
