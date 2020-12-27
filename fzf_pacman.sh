@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-27T11:54:44+0100
+# date:       2020-12-27T12:44:08+0100
 
 # config
 auth="doas"
@@ -70,9 +70,10 @@ while true; do
                     $aur_helper -Qmq
                     ;;
                 8*)
-                    grep \"$(tail -n1 $pacman_log \
-                        | cut -d'T' -f1 \
-                        | tr -d '\[').*\[ALPM\].*(.*)\" $pacman_log \
+                    grep \".*\[ALPM\].*(.*)\" $pacman_log \
+                        | grep \"$(grep ".*[ALPM].*(.*)" $pacman_log \
+                            | tail -n1 \
+                            | cut -b 2-11)\" \
                         | tac
                     ;;
             esac" \
