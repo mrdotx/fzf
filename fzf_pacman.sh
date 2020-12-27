@@ -1,13 +1,16 @@
 #!/bin/sh
 
-# path:       /home/klassiker/.local/share/repos/fzf/fzf_aur.sh
+# path:       /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-26T23:44:07+0100
+# date:       2020-12-27T11:17:51+0100
 
 # config
+auth="doas"
 aur_helper="paru"
 pacman_log="/var/log/pacman.log"
+pacman_mirrors="/etc/pacman.d/mirrorlist"
+pacman_mirrors_conf="/etc/pacman-mirrors.conf"
 
 # help
 script=$(basename "$0")
@@ -19,8 +22,14 @@ help="$script [-h/--help] -- script to manage packages with aur helper
     $script
 
   Config:
+    auth can be something like sudo -A, doas -- or nothing,
+    depending on configuration requirements
+    auth = $auth
+
     aur_helper = $aur_helper
-    pacman_log = $pacman_log"
+    pacman_log = $pacman_log
+    pacman_mirrors = $pacman_mirrors
+    pacman_mirrors_conf = $pacman_mirrors_conf"
 
 if [ "$1" = "-h" ] \
     || [ "$1" = "--help" ]; then
@@ -33,11 +42,12 @@ while true; do
     select=$(printf "%s\n" \
                 "1) install" \
                 "2) update" \
-                "3) remove" \
-                "4) remove [explicit installed]" \
-                "5) remove [without dependencies]" \
-                "6) remove [from aur]" \
-                "7) show pacman.log" \
+                "3) update [pacman mirrorlist]" \
+                "4) remove" \
+                "5) remove [explicit installed]" \
+                "6) remove [without dependencies]" \
+                "7) remove [from aur]" \
+                "8) show pacman.log" \
         | fzf -e -i --cycle --preview "case {1} in
                 1*)
                     $aur_helper -Slq
@@ -47,18 +57,23 @@ while true; do
                     $aur_helper -Qua
                     ;;
                 3*)
-                    $aur_helper -Qq
+                    printf \"%s\n\n%s\" \
+                        \"$(cat $pacman_mirrors)\" \
+                        \"$(cat $pacman_mirrors_conf)\"
                     ;;
                 4*)
-                    $aur_helper -Qqe
+                    $aur_helper -Qq
                     ;;
                 5*)
-                    $aur_helper -Qqt
+                    $aur_helper -Qqe
                     ;;
                 6*)
-                    $aur_helper -Qmq
+                    $aur_helper -Qqt
                     ;;
                 7*)
+                    $aur_helper -Qmq
+                    ;;
+                8*)
                     grep \"$(tail -n1 $pacman_log \
                         | cut -d'T' -f1 \
                         | tr -d '\[').*\[ALPM\].*(.*)\" $pacman_log \
@@ -92,19 +107,24 @@ while true; do
             $aur_helper -Syu --needed
             pause
             ;;
-        "3) remove")
+        "3) update [pacman mirrorlist]")
+            $auth pacman-mirrors -c Germany -t 3 \
+                && $auth pacman -Syyu
+            pause
+            ;;
+        "4) remove")
             execute "Qq" "Qlii" "Rsn"
             ;;
-        "4) remove [explicit installed]")
+        "5) remove [explicit installed]")
             execute "Qqe" "Qlii" "Rsn"
             ;;
-        "5) remove [without dependencies]")
+        "6) remove [without dependencies]")
             execute "Qqt" "Qlii" "Rsn"
             ;;
-        "6) remove [from aur]")
+        "7) remove [from aur]")
             execute "Qmq" "Qlii" "Rsn"
             ;;
-        "7) show pacman.log")
+        "8) show pacman.log")
             $PAGER /var/log/pacman.log
             ;;
         *)
