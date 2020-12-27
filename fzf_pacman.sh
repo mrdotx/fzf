@@ -3,19 +3,20 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-27T16:04:55+0100
+# date:       2020-12-27T18:41:09+0100
+
+# auth can be something like sudo -A, doas -- or nothing,
+# depending on configuration requirements
+auth="doas"
 
 # config
-auth="doas"
-show="$PAGER"
-edit="$EDITOR"
 aur_helper="paru"
 pacman_log="/var/log/pacman.log"
 pacman_mirrors="/etc/pacman.d/mirrorlist"
 
 # help
 script=$(basename "$0")
-help="$script [-h/--help] -- script to manage packages with aur helper
+help="$script [-h/--help] -- script to manage packages with pacman and aur helper
   Usage:
     $script
 
@@ -23,12 +24,8 @@ help="$script [-h/--help] -- script to manage packages with aur helper
     $script
 
   Config:
-    auth can be something like sudo -A, doas -- or nothing,
-    depending on configuration requirements
-    auth = $auth
-
-    aur_helper = $aur_helper
-    pacman_log = $pacman_log
+    aur_helper     = $aur_helper
+    pacman_log     = $pacman_log
     pacman_mirrors = $pacman_mirrors"
 
 if [ "$1" = "-h" ] \
@@ -40,41 +37,41 @@ fi
 while true; do
     # menu
     select=$(printf "%s\n" \
-                " 1) install" \
-                " 2) update" \
-                " 3) remove" \
-                " 4) remove [explicit installed]" \
-                " 5) remove [without dependencies]" \
-                " 6) remove [from aur]" \
-                " 7) remove [orphan]" \
-                " 8) mirrorlist [update]" \
-                " 9) clean cache" \
-                "10) show pacman.log" \
+                "1) install packages" \
+                "2) update packages" \
+                "3) remove packages" \
+                "3.1) explicit installed" \
+                "3.2) without dependencies" \
+                "3.3) from aur" \
+                "3.4) orphan" \
+                "4) mirrorlist" \
+                "5) clean cache" \
+                "6) view pacman.log" \
         | fzf -e -i --cycle --preview "case {1} in
-                10*)
+                6*)
                     grep \".*\[ALPM\].*(.*)\" $pacman_log \
                         | grep \"$(grep ".*[ALPM].*(.*)" $pacman_log \
                             | tail -n1 \
                             | cut -b 2-11)\" \
                         | tac
                     ;;
-                9*)
+                5*)
                     $auth paccache -dvk2
                     $auth paccache -dvuk0
                     ;;
-                8*)
+                4*)
                     cat $pacman_mirrors
                     ;;
-                7*)
+                3.4*)
                     $aur_helper -Qdt
                     ;;
-                6*)
+                3.3*)
                     $aur_helper -Qmq
                     ;;
-                5*)
+                3.2*)
                     $aur_helper -Qqt
                     ;;
-                4*)
+                3.1*)
                     $aur_helper -Qqe
                     ;;
                 3*)
@@ -108,43 +105,43 @@ while true; do
 
     # select executable
     case "$select" in
-        " 1) install")
+        "1) install packages")
             execute "Slq" "Sii" "S"
             ;;
-        " 2) update")
+        "2) update packages")
             $aur_helper -Syu --needed
             pause
             ;;
-        " 3) remove")
+        "3) remove packages")
             execute "Qq" "Qlii" "Rsn"
             ;;
-        " 4) remove [explicit installed]")
+        "3.1) explicit installed")
             execute "Qqe" "Qlii" "Rsn"
             ;;
-        " 5) remove [without dependencies]")
+        "3.2) without dependencies")
             execute "Qqt" "Qlii" "Rsn"
             ;;
-        " 6) remove [from aur]")
+        "3.3) from aur")
             execute "Qmq" "Qlii" "Rsn"
             ;;
-        " 7) remove [orphan]")
+        "3.4) orphan")
             execute "Qdt" "Qlii" "Rsn"
             ;;
-        " 8) mirrorlist [update]")
-            if command -v pacman-mirrors >/dev/null 2>&1; then
+        "4) mirrorlist")
+            if command -v pacman-mirrors > /dev/null 2>&1; then
                 $auth pacman-mirrors -c Germany -t 3 \
                     && $auth pacman -Syyu
                 pause
             else
-                $auth "$edit" $pacman_mirrors
+                $auth "$EDITOR" $pacman_mirrors
             fi
             ;;
-        " 9) clean cache")
+        "5) clean cache")
             $auth paccache -rvk2
             $auth paccache -rvuk0
             ;;
-        "10) show pacman.log")
-            $show /var/log/pacman.log
+        "6) view pacman.log")
+            $PAGER /var/log/pacman.log
             ;;
         *)
             break
