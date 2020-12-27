@@ -3,14 +3,13 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-27T11:17:51+0100
+# date:       2020-12-27T11:54:44+0100
 
 # config
 auth="doas"
 aur_helper="paru"
 pacman_log="/var/log/pacman.log"
 pacman_mirrors="/etc/pacman.d/mirrorlist"
-pacman_mirrors_conf="/etc/pacman-mirrors.conf"
 
 # help
 script=$(basename "$0")
@@ -28,8 +27,7 @@ help="$script [-h/--help] -- script to manage packages with aur helper
 
     aur_helper = $aur_helper
     pacman_log = $pacman_log
-    pacman_mirrors = $pacman_mirrors
-    pacman_mirrors_conf = $pacman_mirrors_conf"
+    pacman_mirrors = $pacman_mirrors"
 
 if [ "$1" = "-h" ] \
     || [ "$1" = "--help" ]; then
@@ -42,7 +40,7 @@ while true; do
     select=$(printf "%s\n" \
                 "1) install" \
                 "2) update" \
-                "3) update [pacman mirrorlist]" \
+                "3) update [manjaro mirrorlist]" \
                 "4) remove" \
                 "5) remove [explicit installed]" \
                 "6) remove [without dependencies]" \
@@ -57,9 +55,7 @@ while true; do
                     $aur_helper -Qua
                     ;;
                 3*)
-                    printf \"%s\n\n%s\" \
-                        \"$(cat $pacman_mirrors)\" \
-                        \"$(cat $pacman_mirrors_conf)\"
+                    cat $pacman_mirrors
                     ;;
                 4*)
                     $aur_helper -Qq
@@ -107,7 +103,7 @@ while true; do
             $aur_helper -Syu --needed
             pause
             ;;
-        "3) update [pacman mirrorlist]")
+        "3) update [manjaro mirrorlist]")
             $auth pacman-mirrors -c Germany -t 3 \
                 && $auth pacman -Syyu
             pause
