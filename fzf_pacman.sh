@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-27T18:41:09+0100
+# date:       2020-12-28T13:35:49+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -37,8 +37,8 @@ fi
 while true; do
     # menu
     select=$(printf "%s\n" \
-                "1) install packages" \
-                "2) update packages" \
+                "1) update packages" \
+                "2) install packages" \
                 "3) remove packages" \
                 "3.1) explicit installed" \
                 "3.2) without dependencies" \
@@ -78,11 +78,11 @@ while true; do
                     $aur_helper -Qq
                     ;;
                 2*)
-                    checkupdates
-                    $aur_helper -Qua
+                    $aur_helper -Slq
                     ;;
                 1*)
-                    $aur_helper -Slq
+                    checkupdates
+                    $aur_helper -Qua
                     ;;
             esac" \
                 --preview-window "right:70%" \
@@ -105,12 +105,12 @@ while true; do
 
     # select executable
     case "$select" in
-        "1) install packages")
-            execute "Slq" "Sii" "S"
-            ;;
-        "2) update packages")
+        "1) update packages")
             $aur_helper -Syu --needed
             pause
+            ;;
+        "2) install packages")
+            execute "Slq" "Sii" "S"
             ;;
         "3) remove packages")
             execute "Qq" "Qlii" "Rsn"
