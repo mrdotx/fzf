@@ -3,7 +3,7 @@
 # path:       /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author:     klassiker [mrdotx]
 # github:     https://github.com/mrdotx/fzf
-# date:       2020-12-28T13:35:49+0100
+# date:       2020-12-31T22:59:40+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -12,6 +12,8 @@ auth="doas"
 # config
 aur_helper="paru"
 pacman_log="/var/log/pacman.log"
+pacman_cache="/var/cache/pacman/pkg"
+pacman_config="/etc/pacman.conf"
 pacman_mirrors="/etc/pacman.d/mirrorlist"
 
 # help
@@ -26,6 +28,8 @@ help="$script [-h/--help] -- script to manage packages with pacman and aur helpe
   Config:
     aur_helper     = $aur_helper
     pacman_log     = $pacman_log
+    pacman_cache   = $pacman_cache
+    pacman_config  = $pacman_config
     pacman_mirrors = $pacman_mirrors"
 
 if [ "$1" = "-h" ] \
@@ -44,23 +48,31 @@ while true; do
                 "3.2) without dependencies" \
                 "3.3) from aur" \
                 "3.4) orphan" \
-                "4) mirrorlist" \
-                "5) clean cache" \
-                "6) view pacman.log" \
+                "4) downgrade packages" \
+                "5) mirrorlist" \
+                "6) clean cache" \
+                "7) view pacman.log" \
         | fzf -e -i --cycle --preview "case {1} in
-                6*)
+                7*)
                     grep \".*\[ALPM\].*(.*)\" $pacman_log \
                         | grep \"$(grep ".*[ALPM].*(.*)" $pacman_log \
                             | tail -n1 \
                             | cut -b 2-11)\" \
                         | tac
                     ;;
-                5*)
+                6*)
                     $auth paccache -dvk2
                     $auth paccache -dvuk0
                     ;;
-                4*)
+                5*)
                     cat $pacman_mirrors
+                    ;;
+                4*)
+                    cd $pacman_cache
+                    find . -iname '*.*' \
+                        | sed 1d \
+                        | cut -b3- \
+                        | sort
                     ;;
                 3.4*)
                     $aur_helper -Qdt
@@ -127,7 +139,19 @@ while true; do
         "3.4) orphan")
             execute "Qdt" "Qlii" "Rsn"
             ;;
-        "4) mirrorlist")
+        "4) downgrade packages")
+            cd $pacman_cache \
+                || exit
+            find . -iname '*.*' \
+                | sed 1d \
+                | cut -b3- \
+                | sort \
+                | fzf -m -e -i --preview "cat $pacman_config" \
+                    --preview-window "right:70%:wrap" \
+                | xargs -ro $aur_helper -U
+            pause
+            ;;
+        "5) mirrorlist")
             if command -v pacman-mirrors > /dev/null 2>&1; then
                 $auth pacman-mirrors -c Germany -t 3 \
                     && $auth pacman -Syyu
@@ -136,12 +160,12 @@ while true; do
                 $auth "$EDITOR" $pacman_mirrors
             fi
             ;;
-        "5) clean cache")
+        "6) clean cache")
             $auth paccache -rvk2
             $auth paccache -rvuk0
             ;;
-        "6) view pacman.log")
-            $PAGER /var/log/pacman.log
+        "7) view pacman.log")
+            $PAGER $pacman_log
             ;;
         *)
             break
