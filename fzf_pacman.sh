@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# path:       /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
-# author:     klassiker [mrdotx]
-# github:     https://github.com/mrdotx/fzf
-# date:       2020-12-31T22:59:40+0100
+# path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
+# author: klassiker [mrdotx]
+# github: https://github.com/mrdotx/fzf
+# date:   2021-01-15T13:35:40+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements

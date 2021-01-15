@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# path:       /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
-# author:     klassiker [mrdotx]
-# github:     https://github.com/mrdotx/fzf
-# date:       2020-12-26T20:40:48+0100
+# path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
+# author: klassiker [mrdotx]
+# github: https://github.com/mrdotx/fzf
+# date:   2021-01-15T13:35:47+0100
 
 # help
 script=$(basename "$0")
