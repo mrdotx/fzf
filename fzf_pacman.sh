@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-01-15T13:35:40+0100
+# date:   2021-01-17T12:56:20+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -163,6 +163,7 @@ while true; do
         "6) clean cache")
             $auth paccache -rvk2
             $auth paccache -rvuk0
+            $aur_helper -c
             ;;
         "7) view pacman.log")
             $PAGER $pacman_log
