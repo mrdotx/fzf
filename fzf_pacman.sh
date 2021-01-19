@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-01-17T12:56:20+0100
+# date:   2021-01-19T09:46:44+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -41,60 +41,60 @@ fi
 while true; do
     # menu
     select=$(printf "%s\n" \
-                "1) update packages" \
-                "2) install packages" \
-                "3) remove packages" \
-                "3.1) explicit installed" \
-                "3.2) without dependencies" \
-                "3.3) from aur" \
-                "3.4) orphan" \
-                "4) downgrade packages" \
-                "5) mirrorlist" \
-                "6) clean cache" \
-                "7) view pacman.log" \
+                "1) view pacman.log" \
+                "2) update packages" \
+                "3) install packages" \
+                "4) remove packages" \
+                "4.1) explicit installed" \
+                "4.2) without dependencies" \
+                "4.3) from aur" \
+                "4.4) orphan" \
+                "5) downgrade packages" \
+                "6) mirrorlist" \
+                "7) clean cache" \
         | fzf -e -i --cycle --preview "case {1} in
                 7*)
-                    grep \".*\[ALPM\].*(.*)\" $pacman_log \
-                        | grep \"$(grep ".*[ALPM].*(.*)" $pacman_log \
-                            | tail -n1 \
-                            | cut -b 2-11)\" \
-                        | tac
-                    ;;
-                6*)
                     $auth paccache -dvk2
                     $auth paccache -dvuk0
                     ;;
-                5*)
+                6*)
                     cat $pacman_mirrors
                     ;;
-                4*)
+                5*)
                     cd $pacman_cache
                     find . -iname '*.*' \
                         | sed 1d \
                         | cut -b3- \
                         | sort
                     ;;
-                3.4*)
+                4.4*)
                     $aur_helper -Qdt
                     ;;
-                3.3*)
+                4.3*)
                     $aur_helper -Qmq
                     ;;
-                3.2*)
+                4.2*)
                     $aur_helper -Qqt
                     ;;
-                3.1*)
+                4.1*)
                     $aur_helper -Qqe
                     ;;
-                3*)
+                4*)
                     $aur_helper -Qq
                     ;;
-                2*)
+                3*)
                     $aur_helper -Slq
                     ;;
-                1*)
+                2*)
                     checkupdates
                     $aur_helper -Qua
+                    ;;
+                1*)
+                    grep \".*\[ALPM\].*(.*)\" $pacman_log \
+                        | grep \"$(grep ".*[ALPM].*(.*)" $pacman_log \
+                            | tail -n1 \
+                            | cut -b 2-11)\" \
+                        | tac
                     ;;
             esac" \
                 --preview-window "right:70%" \
@@ -117,29 +117,32 @@ while true; do
 
     # select executable
     case "$select" in
-        "1) update packages")
+        "1) view pacman.log")
+            $PAGER $pacman_log
+            ;;
+        "2) update packages")
             $aur_helper -Syu --needed
             pause
             ;;
-        "2) install packages")
+        "3) install packages")
             execute "Slq" "Sii" "S"
             ;;
-        "3) remove packages")
+        "4) remove packages")
             execute "Qq" "Qlii" "Rsn"
             ;;
-        "3.1) explicit installed")
+        "4.1) explicit installed")
             execute "Qqe" "Qlii" "Rsn"
             ;;
-        "3.2) without dependencies")
+        "4.2) without dependencies")
             execute "Qqt" "Qlii" "Rsn"
             ;;
-        "3.3) from aur")
+        "4.3) from aur")
             execute "Qmq" "Qlii" "Rsn"
             ;;
-        "3.4) orphan")
+        "4.4) orphan")
             execute "Qdt" "Qlii" "Rsn"
             ;;
-        "4) downgrade packages")
+        "5) downgrade packages")
             cd $pacman_cache \
                 || exit
             find . -iname '*.*' \
@@ -151,7 +154,7 @@ while true; do
                 | xargs -ro $aur_helper -U
             pause
             ;;
-        "5) mirrorlist")
+        "6) mirrorlist")
             if command -v pacman-mirrors > /dev/null 2>&1; then
                 $auth pacman-mirrors -c Germany -t 3 \
                     && $auth pacman -Syyu
@@ -160,13 +163,10 @@ while true; do
                 $auth "$EDITOR" $pacman_mirrors
             fi
             ;;
-        "6) clean cache")
+        "7) clean cache")
             $auth paccache -rvk2
             $auth paccache -rvuk0
             $aur_helper -c
-            ;;
-        "7) view pacman.log")
-            $PAGER $pacman_log
             ;;
         *)
             break
