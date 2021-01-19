@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-01-19T09:46:44+0100
+# date:   2021-01-19T11:58:43+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -51,7 +51,7 @@ while true; do
                 "4.4) orphan" \
                 "5) downgrade packages" \
                 "6) mirrorlist" \
-                "7) clean cache" \
+                "7) clear cache" \
         | fzf -e -i --cycle --preview "case {1} in
                 7*)
                     $auth paccache -dvk2
@@ -163,7 +163,7 @@ while true; do
                 $auth "$EDITOR" $pacman_mirrors
             fi
             ;;
-        "7) clean cache")
+        "7) clear cache")
             $auth paccache -rvk2
             $auth paccache -rvuk0
             $aur_helper -c
