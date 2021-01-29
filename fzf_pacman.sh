@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-01-19T11:58:43+0100
+# date:   2021-01-29T19:27:22+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -102,7 +102,8 @@ while true; do
 
     # wait for keypress
     pause() {
-        printf "%s" "Press ENTER to continue"
+        printf "%s" "The command exited with status $?. "
+        printf "%s" "Press ENTER to continue."
         read -r "select"
     }
 
@@ -112,7 +113,6 @@ while true; do
             | fzf -m -e -i --preview "$aur_helper -$2 {1}" \
                 --preview-window "right:70%:wrap" \
             | xargs -ro $aur_helper -"$3"
-        pause
     }
 
     # select executable
@@ -126,21 +126,27 @@ while true; do
             ;;
         "3) install packages")
             execute "Slq" "Sii" "S"
+            pause
             ;;
         "4) remove packages")
             execute "Qq" "Qlii" "Rsn"
+            pause
             ;;
         "4.1) explicit installed")
             execute "Qqe" "Qlii" "Rsn"
+            pause
             ;;
         "4.2) without dependencies")
             execute "Qqt" "Qlii" "Rsn"
+            pause
             ;;
         "4.3) from aur")
             execute "Qmq" "Qlii" "Rsn"
+            pause
             ;;
         "4.4) orphan")
             execute "Qdt" "Qlii" "Rsn"
+            pause
             ;;
         "5) downgrade packages")
             cd $pacman_cache \
