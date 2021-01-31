@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-01-15T13:35:47+0100
+# date:   2021-01-31T09:05:06+0100
 
 # help
 script=$(basename "$0")
@@ -25,10 +25,8 @@ while true; do
     select=$(printf "%s\n" \
                 "1) restore from trash" \
                 "2) empty trash" \
-                "3) remove trash [select objects]" \
-                "4) remove trash [older than 7 days]" \
-                "5) remove trash [older than 30 days]" \
-                "6) put to trash" \
+                "3) remove from trash" \
+                "4) put to trash" \
         | fzf -e -i --preview "trash-list" \
             --preview-window "right:60%:wrap" \
     )
@@ -68,16 +66,10 @@ while true; do
         "2) empty trash")
             trash-empty
             ;;
-        "3) remove trash [select objects]")
+        "3) remove from trash")
             trash_remove
             ;;
-        "4) remove trash [older than 7 days]")
-            trash-empty 7
-            ;;
-        "5) remove trash [older than 30 days]")
-            trash-empty 30
-            ;;
-        "6) put to trash")
+        "4) put to trash")
             trash_put
             ;;
         *)
