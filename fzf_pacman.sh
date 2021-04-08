@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-03-15T13:14:13+0100
+# date:   2021-04-08T21:12:09+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -44,6 +44,8 @@ while true; do
                 "1) view pacman.log" \
                 "2) update packages" \
                 "3) install packages" \
+                "3.1) from pacman" \
+                "3.2) from aur" \
                 "4) remove packages" \
                 "4.1) explicit installed" \
                 "4.2) without dependencies" \
@@ -82,6 +84,12 @@ while true; do
                 4*)
                     $aur_helper -Qq
                     ;;
+                3.2*)
+                    $aur_helper -Slq --aur
+                    ;;
+                3.1*)
+                    $aur_helper -Slq --repo
+                    ;;
                 3*)
                     $aur_helper -Slq
                     ;;
@@ -109,7 +117,7 @@ while true; do
 
     # execute aur helper
     execute() {
-        $aur_helper -"$1" \
+        eval "$aur_helper -$1" \
             | fzf -m -e -i --preview "$aur_helper -$2 {1}" \
                 --preview-window "right:70%:wrap" \
             | xargs -ro $aur_helper -"$3"
@@ -126,6 +134,14 @@ while true; do
             ;;
         "3) install packages")
             execute "Slq" "Sii" "S"
+            pause
+            ;;
+        "3.1) from pacan")
+            execute "Slq --repo" "Sii" "S"
+            pause
+            ;;
+        "3.2) from aur")
+            execute "Slq --aur" "Sii" "S"
             pause
             ;;
         "4) remove packages")
