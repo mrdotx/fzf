@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-04-08T21:12:09+0200
+# date:   2021-04-09T10:20:12+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -136,7 +136,7 @@ while true; do
             execute "Slq" "Sii" "S"
             pause
             ;;
-        "3.1) from pacan")
+        "3.1) from pacman")
             execute "Slq --repo" "Sii" "S"
             pause
             ;;
