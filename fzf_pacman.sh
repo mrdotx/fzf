@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-04-09T10:20:12+0200
+# date:   2021-04-29T10:37:27+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -37,6 +37,14 @@ if [ "$1" = "-h" ] \
         printf "%s\n" "$help"
         exit 0
 fi
+
+# helper
+alpm_filter=".*[ALPM].*(.*)"
+last_action() {
+    grep "$alpm_filter" $pacman_log \
+        | tail -n1 \
+        | cut -b 2-11
+}
 
 while true; do
     # menu
@@ -98,10 +106,8 @@ while true; do
                     $aur_helper -Qua
                     ;;
                 1*)
-                    grep \".*\[ALPM\].*(.*)\" $pacman_log \
-                        | grep \"$(grep ".*[ALPM].*(.*)" $pacman_log \
-                            | tail -n1 \
-                            | cut -b 2-11)\" \
+                    grep \"$alpm_filter\" $pacman_log \
+                        | grep \"$(last_action)\" \
                         | tac
                     ;;
             esac" \
