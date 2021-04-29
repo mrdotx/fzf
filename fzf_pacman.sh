@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-04-29T10:37:27+0200
+# date:   2021-04-29T13:09:37+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -38,12 +38,32 @@ if [ "$1" = "-h" ] \
         exit 0
 fi
 
-# helper
-alpm_filter=".*[ALPM].*(.*)"
-last_action() {
-    grep "$alpm_filter" $pacman_log \
+# helper functions
+log_filter=".*[ALPM].*(.*)"
+log_last_action() {
+    grep "$log_filter" $pacman_log \
         | tail -n1 \
         | cut -b 2-11
+}
+
+list_filenames() {
+    find . -iname '*.*' \
+        | sed 1d \
+        | cut -b3- \
+        | sort
+}
+
+pause() {
+    printf "%s" "The command exited with status $?. "
+    printf "%s" "Press ENTER to continue."
+    read -r "select"
+}
+
+execute() {
+    eval "$aur_helper -$1" \
+        | fzf -m -e -i --preview "$aur_helper -$2 {1}" \
+            --preview-window "right:70%:wrap" \
+        | xargs -ro $aur_helper -"$3"
 }
 
 while true; do
@@ -71,11 +91,11 @@ while true; do
                     cat $pacman_mirrors
                     ;;
                 5*)
-                    cd $pacman_cache
-                    find . -iname '*.*' \
-                        | sed 1d \
-                        | cut -b3- \
-                        | sort
+                    printf \"%s\" \"$( \
+                        cd $pacman_cache \
+                            || exit
+                        list_filenames \
+                    )\"
                     ;;
                 4.4*)
                     $aur_helper -Qdt
@@ -106,28 +126,13 @@ while true; do
                     $aur_helper -Qua
                     ;;
                 1*)
-                    grep \"$alpm_filter\" $pacman_log \
-                        | grep \"$(last_action)\" \
+                    grep \"$log_filter\" $pacman_log \
+                        | grep \"$(log_last_action)\" \
                         | tac
                     ;;
             esac" \
                 --preview-window "right:70%" \
     )
-
-    # wait for keypress
-    pause() {
-        printf "%s" "The command exited with status $?. "
-        printf "%s" "Press ENTER to continue."
-        read -r "select"
-    }
-
-    # execute aur helper
-    execute() {
-        eval "$aur_helper -$1" \
-            | fzf -m -e -i --preview "$aur_helper -$2 {1}" \
-                --preview-window "right:70%:wrap" \
-            | xargs -ro $aur_helper -"$3"
-    }
 
     # select executable
     case "$select" in
@@ -173,10 +178,7 @@ while true; do
         "5) downgrade packages")
             cd $pacman_cache \
                 || exit
-            find . -iname '*.*' \
-                | sed 1d \
-                | cut -b3- \
-                | sort \
+            list_filenames \
                 | fzf -m -e -i --preview "cat $pacman_config" \
                     --preview-window "right:70%:wrap" \
                 | xargs -ro $aur_helper -U
