@@ -3,11 +3,11 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-04-29T13:09:37+0200
+# date:   2021-04-30T09:59:08+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
-auth="doas"
+auth="$EXEC_AS_USER"
 
 # config
 aur_helper="paru"
