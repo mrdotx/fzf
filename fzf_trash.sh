@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-01-31T09:05:06+0100
+# date:   2021-04-30T08:13:07+0200
 
 # help
 script=$(basename "$0")
@@ -28,14 +28,14 @@ while true; do
                 "3) remove from trash" \
                 "4) put to trash" \
         | fzf -e -i --preview "trash-list" \
-            --preview-window "right:60%:wrap" \
+            --preview-window "right:70%:wrap" \
     )
 
     # remove selected files/folders from trash
     trash_remove() {
         objects=$(trash-list | cut -d ' ' -f3 \
             | fzf -m -e -i --preview "trash-list | grep {1}$" \
-                --preview-window "right:60%:wrap" \
+                --preview-window "right:70%:wrap" \
         )
 
         for entry in $objects; do
@@ -50,7 +50,7 @@ while true; do
                 | cut -b3- \
                 | sort \
                 | fzf -m -e -i --preview "highlight {1}" \
-                    --preview-window "right:60%" \
+                    --preview-window "right:70%" \
         )
 
         for entry in $objects; do
