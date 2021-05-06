@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-04-30T09:59:08+0200
+# date:   2021-05-06T19:27:30+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -137,7 +137,7 @@ while true; do
     # select executable
     case "$select" in
         "1) view pacman.log")
-            $PAGER $pacman_log
+            tac $pacman_log | $PAGER
             ;;
         "2) update packages")
             $aur_helper -Syu --needed
