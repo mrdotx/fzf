@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-05-08T09:17:43+0200
+# date:   2021-05-24T20:42:02+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -39,7 +39,7 @@ if [ "$1" = "-h" ] \
 fi
 
 # helper functions
-log_filter=".*[ALPM].*(.*)"
+log_filter=".*\[ALPM\].*(.*)"
 log_last_action() {
     grep "$log_filter" $pacman_log \
         | tail -n1 \
