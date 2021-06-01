@@ -3,13 +3,14 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-05-24T20:42:02+0200
+# date:   2021-06-01T14:47:30+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
 auth="$EXEC_AS_USER"
 
 # config
+edit="$EDITOR"
 aur_helper="paru"
 pacman_log="/var/log/pacman.log"
 pacman_cache="/var/cache/pacman/pkg"
@@ -26,6 +27,7 @@ help="$script [-h/--help] -- script to manage packages with pacman and aur helpe
     $script
 
   Config:
+    edit           = $edit
     aur_helper     = $aur_helper
     pacman_log     = $pacman_log
     pacman_cache   = $pacman_cache
@@ -81,14 +83,18 @@ while true; do
                 "4.4) orphan" \
                 "5) downgrade packages" \
                 "6) mirrorlist" \
-                "7) clear cache" \
+                "7) pacman config" \
+                "8) clear cache" \
         | fzf -e -i --cycle --preview "case {1} in
-                7*)
+                8*)
                     $auth paccache -dvk2
                     $auth paccache -dvuk0
                     ;;
+                7*)
+                    < $pacman_config
+                    ;;
                 6*)
-                    cat $pacman_mirrors
+                    < $pacman_mirrors
                     ;;
                 5*)
                     printf \"%s\" \"$( \
@@ -179,7 +185,7 @@ while true; do
             cd $pacman_cache \
                 || exit
             list_filenames \
-                | fzf -m -e -i --preview "cat $pacman_config" \
+                | fzf -m -e -i --preview "printf '%s' $pacman_cache/{1}" \
                     --preview-window "right:70%:wrap" \
                 | xargs -ro $aur_helper -U
             pause
@@ -190,10 +196,13 @@ while true; do
                     && $auth pacman -Syyu
                 pause
             else
-                $auth "$EDITOR" $pacman_mirrors
+                $auth "$edit" $pacman_mirrors
             fi
             ;;
-        "7) clear cache")
+        "7) pacman config")
+            $auth "$edit" $pacman_config
+            ;;
+        "8) clear cache")
             $auth paccache -rvk2
             $auth paccache -rvuk0
             $aur_helper -c
