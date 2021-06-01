@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-06-01T14:47:30+0200
+# date:   2021-06-01T18:50:34+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -12,6 +12,7 @@ auth="$EXEC_AS_USER"
 # config
 edit="$EDITOR"
 aur_helper="paru"
+aur_cache="$HOME/.cache/paru/clone"
 pacman_log="/var/log/pacman.log"
 pacman_cache="/var/cache/pacman/pkg"
 pacman_config="/etc/pacman.conf"
@@ -29,6 +30,7 @@ help="$script [-h/--help] -- script to manage packages with pacman and aur helpe
   Config:
     edit           = $edit
     aur_helper     = $aur_helper
+    aur_cache      = $aur_cache
     pacman_log     = $pacman_log
     pacman_cache   = $pacman_cache
     pacman_config  = $pacman_config
@@ -43,16 +45,31 @@ fi
 # helper functions
 log_filter=".*\[ALPM\].*(.*)"
 log_last_action() {
-    grep "$log_filter" $pacman_log \
+    grep "$log_filter" "$pacman_log" \
         | tail -n1 \
         | cut -b 2-11
 }
 
-list_filenames() {
-    find . -iname '*.*' \
+list_pkg_files() {
+    find . -iname '*.pkg.tar.*' \
         | sed 1d \
         | cut -b3- \
         | sort
+}
+
+downgrade_preview() {
+    cd "$1" \
+        || exit
+    list_pkg_files
+}
+
+downgrade() {
+    cd "$1" \
+        || exit
+    list_pkg_files \
+        | fzf -m -e -i --preview "printf '%s' $1/{1}" \
+            --preview-window "right:70%:wrap" \
+        | xargs -ro "$auth" pacman -U
 }
 
 pause() {
@@ -82,57 +99,57 @@ while true; do
                 "4.3) from aur" \
                 "4.4) orphan" \
                 "5) downgrade packages" \
+                "5.1) from aur" \
                 "6) mirrorlist" \
                 "7) pacman config" \
                 "8) clear cache" \
         | fzf -e -i --cycle --preview "case {1} in
                 8*)
-                    $auth paccache -dvk2
-                    $auth paccache -dvuk0
+                    \"$auth\" paccache -dvk2
+                    \"$auth\" paccache -dvuk0
                     ;;
                 7*)
-                    < $pacman_config
+                    < \"$pacman_config\"
                     ;;
                 6*)
-                    < $pacman_mirrors
+                    < \"$pacman_mirrors\"
+                    ;;
+                5.1*)
+                    printf \"%s\" \"$(downgrade_preview "$aur_cache")\"
                     ;;
                 5*)
-                    printf \"%s\" \"$( \
-                        cd $pacman_cache \
-                            || exit
-                        list_filenames \
-                    )\"
+                    printf \"%s\" \"$(downgrade_preview "$pacman_cache")\"
                     ;;
                 4.4*)
-                    $aur_helper -Qdtq
+                    \"$aur_helper\" -Qdtq
                     ;;
                 4.3*)
-                    $aur_helper -Qmq
+                    \"$aur_helper\" -Qmq
                     ;;
                 4.2*)
-                    $aur_helper -Qqt
+                    \"$aur_helper\" -Qqt
                     ;;
                 4.1*)
-                    $aur_helper -Qqe
+                    \"$aur_helper\" -Qqe
                     ;;
                 4*)
-                    $aur_helper -Qq
+                    \"$aur_helper\" -Qq
                     ;;
                 3.2*)
-                    $aur_helper -Slq --aur
+                    \"$aur_helper\" -Slq --aur
                     ;;
                 3.1*)
-                    $aur_helper -Slq --repo
+                    \"$aur_helper\" -Slq --repo
                     ;;
                 3*)
-                    $aur_helper -Slq
+                    \"$aur_helper\" -Slq
                     ;;
                 2*)
                     checkupdates
-                    $aur_helper -Qua
+                    \"$aur_helper\" -Qua
                     ;;
                 1*)
-                    grep \"$log_filter\" $pacman_log \
+                    grep \"$log_filter\" \"$pacman_log\" \
                         | grep \"$(log_last_action)\" \
                         | tac
                     ;;
@@ -143,10 +160,10 @@ while true; do
     # select executable
     case "$select" in
         "1) view pacman.log")
-            tac $pacman_log | $PAGER
+            tac "$pacman_log" | $PAGER
             ;;
         "2) update packages")
-            $aur_helper -Syu --needed
+            "$aur_helper" -Syu --needed
             pause
             ;;
         "3) install packages")
@@ -182,30 +199,29 @@ while true; do
             pause
             ;;
         "5) downgrade packages")
-            cd $pacman_cache \
-                || exit
-            list_filenames \
-                | fzf -m -e -i --preview "printf '%s' $pacman_cache/{1}" \
-                    --preview-window "right:70%:wrap" \
-                | xargs -ro $aur_helper -U
+            downgrade "$pacman_cache"
+            pause
+            ;;
+        "5.1) from aur")
+            downgrade "$aur_cache"
             pause
             ;;
         "6) mirrorlist")
             if command -v pacman-mirrors > /dev/null 2>&1; then
-                $auth pacman-mirrors -c Germany \
-                    && $auth pacman -Syyu
+                "$auth" pacman-mirrors -c Germany \
+                    && "$auth" pacman -Syyu
                 pause
             else
-                $auth "$edit" $pacman_mirrors
+                "$auth" "$edit" "$pacman_mirrors"
             fi
             ;;
         "7) pacman config")
-            $auth "$edit" $pacman_config
+            "$auth" "$edit" "$pacman_config"
             ;;
         "8) clear cache")
-            $auth paccache -rvk2
-            $auth paccache -rvuk0
-            $aur_helper -c
+            "$auth" paccache -rvk2
+            "$auth" paccache -rvuk0
+            "$aur_helper" -c
             ;;
         *)
             break
