@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-06-01T18:50:34+0200
+# date:   2021-06-04T19:51:18+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -13,6 +13,7 @@ auth="$EXEC_AS_USER"
 edit="$EDITOR"
 aur_helper="paru"
 aur_cache="$HOME/.cache/paru/clone"
+aur_backup="$HOME/.config/paru"
 pacman_log="/var/log/pacman.log"
 pacman_cache="/var/cache/pacman/pkg"
 pacman_config="/etc/pacman.conf"
@@ -31,6 +32,7 @@ help="$script [-h/--help] -- script to manage packages with pacman and aur helpe
     edit           = $edit
     aur_helper     = $aur_helper
     aur_cache      = $aur_cache
+    aur_backup     = $aur_backup
     pacman_log     = $pacman_log
     pacman_cache   = $pacman_cache
     pacman_config  = $pacman_config
@@ -82,7 +84,7 @@ execute() {
     eval "$aur_helper -$1" \
         | fzf -m -e -i --preview "$aur_helper -$2 {1}" \
             --preview-window "right:70%:wrap" \
-        | xargs -ro $aur_helper -"$3"
+        | xargs -ro "$aur_helper" -"$3"
 }
 
 while true; do
@@ -145,6 +147,7 @@ while true; do
                     \"$aur_helper\" -Slq
                     ;;
                 2*)
+                    sleep .1
                     checkupdates
                     \"$aur_helper\" -Qua
                     ;;
@@ -224,6 +227,12 @@ while true; do
             "$aur_helper" -c
             ;;
         *)
+            # create backup lists to reinstall packages
+            # to reinstall the packages:
+            # "aur_helper" -S --needed - < "$aur_backup/explicit_installed_packages.txt"
+            "$aur_helper" -Qq > "$aur_backup/installed_packages.txt"
+            "$aur_helper" -Qqe > "$aur_backup/explicit_installed_packages.txt"
+
             break
             ;;
     esac
