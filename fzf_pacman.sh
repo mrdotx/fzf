@@ -3,16 +3,18 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-06-04T19:51:18+0200
+# date:   2021-06-04T20:34:58+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
 auth="$EXEC_AS_USER"
 
 # config
+display="$PAGER"
 edit="$EDITOR"
 aur_helper="paru"
 aur_cache="$HOME/.cache/paru/clone"
+aur_config="$HOME/.config/paru/paru.conf"
 aur_backup="$HOME/.config/paru"
 pacman_log="/var/log/pacman.log"
 pacman_cache="/var/cache/pacman/pkg"
@@ -29,9 +31,11 @@ help="$script [-h/--help] -- script to manage packages with pacman and aur helpe
     $script
 
   Config:
+    display        = $display
     edit           = $edit
     aur_helper     = $aur_helper
     aur_cache      = $aur_cache
+    aur_config     = $aur_config
     aur_backup     = $aur_backup
     pacman_log     = $pacman_log
     pacman_cache   = $pacman_cache
@@ -99,16 +103,19 @@ while true; do
                 "4.1) explicit installed" \
                 "4.2) without dependencies" \
                 "4.3) from aur" \
-                "4.4) orphan" \
                 "5) downgrade packages" \
                 "5.1) from aur" \
                 "6) mirrorlist" \
                 "7) pacman config" \
-                "8) clear cache" \
+                "8) aur config" \
+                "9) clear cache" \
         | fzf -e -i --cycle --preview "case {1} in
-                8*)
+                9*)
                     \"$auth\" paccache -dvk2
                     \"$auth\" paccache -dvuk0
+                    ;;
+                8*)
+                    < \"$aur_config\"
                     ;;
                 7*)
                     < \"$pacman_config\"
@@ -121,9 +128,6 @@ while true; do
                     ;;
                 5*)
                     printf \"%s\" \"$(downgrade_preview "$pacman_cache")\"
-                    ;;
-                4.4*)
-                    \"$aur_helper\" -Qdtq
                     ;;
                 4.3*)
                     \"$aur_helper\" -Qmq
@@ -147,7 +151,6 @@ while true; do
                     \"$aur_helper\" -Slq
                     ;;
                 2*)
-                    sleep .1
                     checkupdates
                     \"$aur_helper\" -Qua
                     ;;
@@ -163,7 +166,7 @@ while true; do
     # select executable
     case "$select" in
         "1) view pacman.log")
-            tac "$pacman_log" | $PAGER
+            tac "$pacman_log" | "$display"
             ;;
         "2) update packages")
             "$aur_helper" -Syu --needed
@@ -197,10 +200,6 @@ while true; do
             execute "Qmq" "Qlii" "Rsn"
             pause
             ;;
-        "4.4) orphan")
-            execute "Qdtq" "Qlii" "Rsn"
-            pause
-            ;;
         "5) downgrade packages")
             downgrade "$pacman_cache"
             pause
@@ -221,7 +220,10 @@ while true; do
         "7) pacman config")
             "$auth" "$edit" "$pacman_config"
             ;;
-        "8) clear cache")
+        "8) aur config")
+            "$edit" "$aur_config"
+            ;;
+        "9) clear cache")
             "$auth" paccache -rvk2
             "$auth" paccache -rvuk0
             "$aur_helper" -c
