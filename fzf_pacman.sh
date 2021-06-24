@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-06-04T20:34:58+0200
+# date:   2021-06-24T06:35:30+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -18,6 +18,7 @@ aur_config="$HOME/.config/paru/paru.conf"
 aur_backup="$HOME/.config/paru"
 pacman_log="/var/log/pacman.log"
 pacman_cache="/var/cache/pacman/pkg"
+pacman_cache_versions=2
 pacman_config="/etc/pacman.conf"
 pacman_mirrors="/etc/pacman.d/mirrorlist"
 
@@ -31,16 +32,17 @@ help="$script [-h/--help] -- script to manage packages with pacman and aur helpe
     $script
 
   Config:
-    display        = $display
-    edit           = $edit
-    aur_helper     = $aur_helper
-    aur_cache      = $aur_cache
-    aur_config     = $aur_config
-    aur_backup     = $aur_backup
-    pacman_log     = $pacman_log
-    pacman_cache   = $pacman_cache
-    pacman_config  = $pacman_config
-    pacman_mirrors = $pacman_mirrors"
+    display               = $display
+    edit                  = $edit
+    aur_helper            = $aur_helper
+    aur_cache             = $aur_cache
+    aur_config            = $aur_config
+    aur_backup            = $aur_backup
+    pacman_log            = $pacman_log
+    pacman_cache          = $pacman_cache
+    pacman_cache_versions = $pacman_cache_versions
+    pacman_config         = $pacman_config
+    pacman_mirrors        = $pacman_mirrors"
 
 if [ "$1" = "-h" ] \
     || [ "$1" = "--help" ]; then
@@ -111,8 +113,12 @@ while true; do
                 "9) clear cache" \
         | fzf -e -i --cycle --preview "case {1} in
                 9*)
-                    \"$auth\" paccache -dvk2
+                    printf \":: old packages\n\"
+                    \"$auth\" paccache -dvk$pacman_cache_versions
+                    printf \":: uninstalled packages\n\"
                     \"$auth\" paccache -dvuk0
+                    printf \":: orphan packages\n\"
+                    \"$aur_helper\" -Qdtq
                     ;;
                 8*)
                     < \"$aur_config\"
@@ -224,7 +230,7 @@ while true; do
             "$edit" "$aur_config"
             ;;
         "9) clear cache")
-            "$auth" paccache -rvk2
+            "$auth" paccache -rvk$pacman_cache_versions
             "$auth" paccache -rvuk0
             "$aur_helper" -c
             ;;
