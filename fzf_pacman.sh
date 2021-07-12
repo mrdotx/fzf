@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-07-11T09:02:51+0200
+# date:   2021-07-12T08:58:08+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -75,8 +75,7 @@ downgrade() {
     cd "$1" \
         || exit
     list_pkg_files \
-        | fzf -m -e -i --preview "printf '%s' $1/{1}" \
-            --preview-window "right:70%:wrap" \
+        | fzf -m -e -i  \
         | xargs -ro "$auth" pacman -U
 }
 
@@ -96,24 +95,24 @@ execute() {
 while true; do
     # menu
     select=$(printf "%s\n" \
-                " 1) view pacman.log" \
-                " 2) update packages" \
-                " 3) install packages" \
-                " 3.1) from pacman" \
-                " 3.2) from aur" \
-                " 4) remove packages" \
-                " 4.1) explicit installed" \
-                " 4.2) without dependencies" \
-                " 4.3) from aur" \
-                " 5) downgrade packages" \
-                " 5.1) from aur" \
-                " 6) mirrorlist" \
-                " 7) pacman config" \
-                " 8) aur config" \
-                " 9) packages config diff" \
-                "10) clear cache" \
+                "1) view pacman.log" \
+                "2) update packages" \
+                "3) install packages" \
+                "3.1) pacman" \
+                "3.2) aur" \
+                "4) remove packages" \
+                "4.1) aur" \
+                "4.2) explicit installed" \
+                "4.3) without dependencies" \
+                "5) downgrade packages" \
+                "5.1) aur" \
+                "6) config" \
+                "6.1) aur" \
+                "6.2) mirrorlist" \
+                "6.3) packages diff" \
+                "7) clear cache" \
         | fzf -e -i --cycle --preview "case {1} in
-                10*)
+                7*)
                     printf \":: old packages\n\"
                     \"$auth\" paccache -dvk$pacman_cache_versions
                     printf \":: uninstalled packages\n\"
@@ -121,17 +120,17 @@ while true; do
                     printf \":: orphan packages\n\"
                     \"$aur_helper\" -Qdtq
                     ;;
-                9*)
+                6.3*)
                     \"$auth\" pacdiff -f -o
                     ;;
-                8*)
+                6.2*)
+                    < \"$pacman_mirrors\"
+                    ;;
+                6.1*)
                     < \"$aur_config\"
                     ;;
-                7*)
-                    < \"$pacman_config\"
-                    ;;
                 6*)
-                    < \"$pacman_mirrors\"
+                    < \"$pacman_config\"
                     ;;
                 5.1*)
                     printf \"%s\" \"$(downgrade_preview "$aur_cache")\"
@@ -140,13 +139,13 @@ while true; do
                     printf \"%s\" \"$(downgrade_preview "$pacman_cache")\"
                     ;;
                 4.3*)
-                    \"$aur_helper\" -Qmq
-                    ;;
-                4.2*)
                     \"$aur_helper\" -Qqt
                     ;;
-                4.1*)
+                4.2*)
                     \"$aur_helper\" -Qqe
+                    ;;
+                4.1*)
+                    \"$aur_helper\" -Qmq
                     ;;
                 4*)
                     \"$aur_helper\" -Qq
@@ -175,50 +174,56 @@ while true; do
 
     # select executable
     case "$select" in
-        " 1) view pacman.log")
+        "1) view pacman.log")
             tac "$pacman_log" | "$display"
             ;;
-        " 2) update packages")
+        "2) update packages")
             "$aur_helper" -Syu --needed
             pause
             ;;
-        " 3) install packages")
+        "3) install packages")
             execute "Slq" "Sii" "S"
             pause
             ;;
-        " 3.1) from pacman")
+        "3.1) pacman")
             execute "Slq --repo" "Sii" "S"
             pause
             ;;
-        " 3.2) from aur")
+        "3.2) aur")
             execute "Slq --aur" "Sii" "S"
             pause
             ;;
-        " 4) remove packages")
+        "4) remove packages")
             execute "Qq" "Qlii" "Rsn"
             pause
             ;;
-        " 4.1) explicit installed")
-            execute "Qqe" "Qlii" "Rsn"
-            pause
-            ;;
-        " 4.2) without dependencies")
-            execute "Qqt" "Qlii" "Rsn"
-            pause
-            ;;
-        " 4.3) from aur")
+        "4.1) aur")
             execute "Qmq" "Qlii" "Rsn"
             pause
             ;;
-        " 5) downgrade packages")
+        "4.2) explicit installed")
+            execute "Qqe" "Qlii" "Rsn"
+            pause
+            ;;
+        "4.3) without dependencies")
+            execute "Qqt" "Qlii" "Rsn"
+            pause
+            ;;
+        "5) downgrade packages")
             downgrade "$pacman_cache"
             pause
             ;;
-        " 5.1) from aur")
+        "5.1) aur")
             downgrade "$aur_cache"
             pause
             ;;
-        " 6) mirrorlist")
+        "6) config")
+            "$auth" "$edit" "$pacman_config"
+            ;;
+        "6.1) aur")
+            "$edit" "$aur_config"
+            ;;
+        "6.2) mirrorlist")
             if command -v pacman-mirrors > /dev/null 2>&1; then
                 "$auth" pacman-mirrors -c Germany \
                     && "$auth" pacman -Syyu
@@ -227,16 +232,10 @@ while true; do
                 "$auth" "$edit" "$pacman_mirrors"
             fi
             ;;
-        " 7) pacman config")
-            "$auth" "$edit" "$pacman_config"
-            ;;
-        " 8) aur config")
-            "$edit" "$aur_config"
-            ;;
-        " 9) packages config diff")
+        "6.3) packages diff")
             "$auth" pacdiff -f
             ;;
-        "10) clear cache")
+        "8) clear cache")
             "$auth" paccache -rvk$pacman_cache_versions
             "$auth" paccache -rvuk0
             "$aur_helper" -c
