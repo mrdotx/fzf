@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-07-12T12:07:58+0200
+# date:   2021-07-15T12:39:14+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -44,11 +44,9 @@ help="$script [-h/--help] -- script to manage packages with pacman and aur helpe
     pacman_config         = $pacman_config
     pacman_mirrors        = $pacman_mirrors"
 
-if [ "$1" = "-h" ] \
-    || [ "$1" = "--help" ]; then
-        printf "%s\n" "$help"
-        exit 0
-fi
+[ -n "$1" ] \
+    && printf "%s\n" "$help" \
+    && exit 0
 
 # helper functions
 log_filter=".*\[ALPM\].*(.*)"
@@ -74,9 +72,10 @@ downgrade_preview() {
 downgrade() {
     cd "$1" \
         || exit
-    list_pkg_files \
-        | fzf -m -e -i  \
-        | xargs -ro "$auth" pacman -U
+    select=$(list_pkg_files \
+        | fzf -m -e -i)
+    [ -n "$select" ] \
+        && "$auth" pacman -U "$select"
 }
 
 pause() {
@@ -86,10 +85,13 @@ pause() {
 }
 
 execute() {
-    eval "$aur_helper -$1" \
+    select=$( \
+        $aur_helper -"$1" \
         | fzf -m -e -i --preview "$aur_helper -$2 {1}" \
             --preview-window "right:70%:wrap" \
-        | xargs -ro "$aur_helper" -"$3"
+    )
+    [ -n "$select" ] \
+        && "$aur_helper" -"$3" "$select"
 }
 
 while true; do

@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_man.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-01-15T13:35:32+0100
+# date:   2021-07-15T12:37:27+0200
 
 # help
 script=$(basename "$0")
@@ -14,17 +14,16 @@ help="$script [-h/--help] -- script to search and open man pages
   Examples:
     $script"
 
-if [ "$1" = "-h" ] \
-    || [ "$1" = "--help" ]; then
-        printf "%s\n" "$help"
-        exit 0
-fi
+[ -n "$1" ] \
+    && printf "%s\n" "$help" \
+    && exit 0
 
-# execute
-apropos -l '' \
+select=$(apropos -l '' \
     | cut -d ' ' -f1,2 \
     | sort \
     | fzf -m -e -i --preview "man {1}{2}" \
         --preview-window "right:70%" \
-    | tr -d ' ' \
-    | xargs -ro man
+    | tr -d ' ')
+
+[ -n "$select" ] \
+    && man "$select"
