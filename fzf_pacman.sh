@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-07-15T12:39:14+0200
+# date:   2021-08-25T13:59:38+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -69,29 +69,31 @@ downgrade_preview() {
     list_pkg_files
 }
 
-downgrade() {
+pacman_downgrade() {
     cd "$1" \
         || exit
     select=$(list_pkg_files \
         | fzf -m -e -i)
     [ -n "$select" ] \
-        && "$auth" pacman -U "$select"
+        && select="$auth pacman -U $select" \
+        && $select
 }
 
-pause() {
-    printf "%s" "The command exited with status $?. "
-    printf "%s" "Press ENTER to continue."
-    read -r "select"
-}
-
-execute() {
+aur_execute() {
     select=$( \
         $aur_helper -"$1" \
         | fzf -m -e -i --preview "$aur_helper -$2 {1}" \
             --preview-window "right:70%:wrap" \
     )
     [ -n "$select" ] \
-        && "$aur_helper" -"$3" "$select"
+        && select="$aur_helper -$3 $select" \
+        && $select
+}
+
+pause() {
+    printf "%s" "The command exited with status $?. "
+    printf "%s" "Press ENTER to continue."
+    read -r "select"
 }
 
 while true; do
@@ -184,39 +186,39 @@ while true; do
             pause
             ;;
         "3) install packages")
-            execute "Slq" "Sii" "S"
+            aur_execute "Slq" "Sii" "S"
             pause
             ;;
         "3.1) pacman")
-            execute "Slq --repo" "Sii" "S"
+            aur_execute "Slq --repo" "Sii" "S"
             pause
             ;;
         "3.2) aur")
-            execute "Slq --aur" "Sii" "S"
+            aur_execute "Slq --aur" "Sii" "S"
             pause
             ;;
         "4) remove packages")
-            execute "Qq" "Qlii" "Rsn"
+            aur_execute "Qq" "Qlii" "Rsn"
             pause
             ;;
         "4.1) aur")
-            execute "Qmq" "Qlii" "Rsn"
+            aur_execute "Qmq" "Qlii" "Rsn"
             pause
             ;;
         "4.2) explicit installed")
-            execute "Qqe" "Qlii" "Rsn"
+            aur_execute "Qqe" "Qlii" "Rsn"
             pause
             ;;
         "4.3) without dependencies")
-            execute "Qqt" "Qlii" "Rsn"
+            aur_execute "Qqt" "Qlii" "Rsn"
             pause
             ;;
         "5) downgrade packages")
-            downgrade "$pacman_cache"
+            pacman_downgrade "$pacman_cache"
             pause
             ;;
         "5.1) aur")
-            downgrade "$aur_cache"
+            pacman_downgrade "$aur_cache"
             pause
             ;;
         "6) config")
