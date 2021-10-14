@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-08-25T13:59:38+0200
+# date:   2021-10-14T11:29:46+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -81,7 +81,7 @@ pacman_downgrade() {
 
 aur_execute() {
     select=$( \
-        $aur_helper -"$1" \
+        eval $aur_helper -"$1" \
         | fzf -m -e -i --preview "$aur_helper -$2 {1}" \
             --preview-window "right:70%:wrap" \
     )
