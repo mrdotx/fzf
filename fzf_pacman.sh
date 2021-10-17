@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-10-14T11:29:46+0200
+# date:   2021-10-17T18:18:32+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -66,16 +66,17 @@ list_pkg_files() {
 downgrade_preview() {
     cd "$1" \
         || exit
-    list_pkg_files
+    list_pkg_files \
+        | cut -d'/' -f2
 }
 
 pacman_downgrade() {
     cd "$1" \
         || exit
-    select=$(list_pkg_files \
+    select=$(downgrade_preview \
         | fzf -m -e -i)
     [ -n "$select" ] \
-        && select="$auth pacman -U $select" \
+        && select="$auth pacman -U $(find . -iname "$select")" \
         && $select
 }
 
