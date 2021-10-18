@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-10-17T18:39:05+0200
+# date:   2021-10-18T08:57:56+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -229,13 +229,7 @@ while true; do
             "$edit" "$aur_config"
             ;;
         "6.2) mirrorlist")
-            if command -v pacman-mirrors > /dev/null 2>&1; then
-                "$auth" pacman-mirrors -c Germany \
-                    && "$auth" pacman -Syyu
-                pause
-            else
-                "$auth" "$edit" "$pacman_mirrors"
-            fi
+            "$auth" "$edit" "$pacman_mirrors"
             ;;
         "6.3) packages diff")
             "$auth" pacdiff -f
