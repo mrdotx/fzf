@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-10-18T08:57:56+0200
+# date:   2021-10-22T10:27:22+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -129,6 +129,8 @@ while true; do
                     \"$auth\" pacdiff -f -o
                     ;;
                 6.2*)
+                    rankmirrors -n 0 -t /etc/pacman.d/mirrorlist
+                    printf \"\n\"
                     < \"$pacman_mirrors\"
                     ;;
                 6.1*)
