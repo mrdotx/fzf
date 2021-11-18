@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-11-16T09:44:22+0100
+# date:   2021-11-18T08:20:55+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -56,26 +56,26 @@ log_last_action() {
         | cut -b 2-11
 }
 
-list_pkg_files() {
-    find . -type f \( -iname '*.pkg.tar.*' ! -iname '*.sig' \) \
-        | sed 1d \
-        | cut -b3- \
+pkg_files() {
+    find "$1" -type f \( -iname '*.pkg.tar.*' ! -iname '*.sig' \) -print0 \
+        | xargs -0 basename -a \
         | sort
 }
 
-downgrade_preview() {
-    cd "$1" \
-        || exit
-    list_pkg_files
+pkg_fullpath() {
+    path="$1"
+    shift
+    files="$*"
+    for file in $files; do
+        find "$path" -iname "$file"
+    done
 }
 
 pacman_downgrade() {
-    cd "$1" \
-        || exit
-    select=$(list_pkg_files \
+    select=$(pkg_files "$1" \
         | fzf -m -e -i)
     [ -n "$select" ] \
-        && select="$auth pacman -U $select" \
+        && select="$auth pacman -U $(pkg_fullpath "$1" "$select")" \
         && $select
 }
 
@@ -139,10 +139,10 @@ while true; do
                     < \"$pacman_config\"
                     ;;
                 5.1*)
-                    printf \"%s\" \"$(downgrade_preview "$aur_cache")\"
+                    printf \"%s\" \"$(pkg_files "$aur_cache")\"
                     ;;
                 5*)
-                    printf \"%s\" \"$(downgrade_preview "$pacman_cache")\"
+                    printf \"%s\" \"$(pkg_files "$pacman_cache")\"
                     ;;
                 4.3*)
                     \"$aur_helper\" -Qqt
