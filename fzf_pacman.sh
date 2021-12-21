@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-11-18T08:20:55+0100
+# date:   2021-12-21T09:57:56+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -129,14 +129,13 @@ while true; do
                     ;;
                 6.2*)
                     rankmirrors -n 0 -t \"$pacman_mirrors\"
-                    printf \"\n\"
-                    < \"$pacman_mirrors\"
+                    printf \"\n%s\" \"$(cat "$pacman_mirrors")\"
                     ;;
                 6.1*)
-                    < \"$aur_config\"
+                    cat \"$aur_config\"
                     ;;
                 6*)
-                    < \"$pacman_config\"
+                    cat \"$pacman_config\"
                     ;;
                 5.1*)
                     printf \"%s\" \"$(pkg_files "$aur_cache")\"
