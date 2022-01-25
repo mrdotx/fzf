@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2021-12-21T09:57:56+0100
+# date:   2022-01-25T19:39:46+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -16,6 +16,7 @@ aur_helper="paru"
 aur_cache="$HOME/.cache/paru/clone"
 aur_config="$HOME/.config/paru/paru.conf"
 aur_backup="$HOME/.config/paru"
+ala_url="https://archive.archlinux.org/packages"
 pacman_log="/var/log/pacman.log"
 pacman_cache="/var/cache/pacman/pkg"
 pacman_cache_versions=2
@@ -38,6 +39,7 @@ help="$script [-h/--help] -- script to manage packages with pacman and aur helpe
     aur_cache             = $aur_cache
     aur_config            = $aur_config
     aur_backup            = $aur_backup
+    ala_url               = $ala_url
     pacman_log            = $pacman_log
     pacman_cache          = $pacman_cache
     pacman_cache_versions = $pacman_cache_versions
@@ -79,6 +81,29 @@ pacman_downgrade() {
         && $select
 }
 
+ala_downgrade() {
+    ala_pkg=$("$aur_helper" -Qq \
+        | fzf -e -i)
+    [ -z "$ala_pkg" ] \
+        && return
+
+    url=$(printf "%s/%s/%s/\n" \
+        "$1" \
+        "${ala_pkg%"${ala_pkg#?}"}" \
+        "$ala_pkg" \
+    )
+
+    select=$(curl -f -s "$url" \
+        | grep "^<a href=" \
+        | sed -e "/.sig\"/d" \
+            -e "s/<a href=\"$ala_pkg/$ala_pkg/g" \
+            -e "s/\">$ala_pkg.*$//g" \
+        | fzf -e -i)
+    [ -n "$select" ] \
+        && select="$auth pacman -U $(printf "%s%s\n" "$url" "$select")" \
+        && $select
+}
+
 aur_execute() {
     select=$( \
         eval $aur_helper -"$1" \
@@ -110,6 +135,7 @@ while true; do
                 "4.3) without dependencies" \
                 "5) downgrade packages" \
                 "5.1) aur" \
+                "5.2) ala" \
                 "6) config" \
                 "6.1) aur" \
                 "6.2) mirrorlist" \
@@ -136,6 +162,9 @@ while true; do
                     ;;
                 6*)
                     cat \"$pacman_config\"
+                    ;;
+                5.2*)
+                    \"$aur_helper\" -Qq
                     ;;
                 5.1*)
                     printf \"%s\" \"$(pkg_files "$aur_cache")\"
@@ -220,6 +249,10 @@ while true; do
             ;;
         "5.1) aur")
             pacman_downgrade "$aur_cache"
+            pause
+            ;;
+        "5.2) ala")
+            ala_downgrade "$ala_url"
             pause
             ;;
         "6) config")
