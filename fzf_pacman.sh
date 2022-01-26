@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-01-25T19:39:46+0100
+# date:   2022-01-26T08:30:01+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -81,6 +81,14 @@ pacman_downgrade() {
         && $select
 }
 
+ala_files() {
+    curl -f -s "$1" \
+        | grep "^<a href=" \
+        | sed -e "/.sig\"/d" \
+            -e "s/<a href=\"$2/$2/g" \
+            -e "s/\">$2.*$//g"
+}
+
 ala_downgrade() {
     ala_pkg=$("$aur_helper" -Qq \
         | fzf -e -i)
@@ -93,14 +101,10 @@ ala_downgrade() {
         "$ala_pkg" \
     )
 
-    select=$(curl -f -s "$url" \
-        | grep "^<a href=" \
-        | sed -e "/.sig\"/d" \
-            -e "s/<a href=\"$ala_pkg/$ala_pkg/g" \
-            -e "s/\">$ala_pkg.*$//g" \
+    select=$(ala_files "$url" "$ala_pkg" \
         | fzf -e -i)
     [ -n "$select" ] \
-        && select="$auth pacman -U $(printf "%s%s\n" "$url" "$select")" \
+        && select="$auth pacman -U $url$select" \
         && $select
 }
 
