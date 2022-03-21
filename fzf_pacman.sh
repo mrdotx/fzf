@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-03-09T13:36:34+0100
+# date:   2022-03-21T10:06:06+0100
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -216,7 +216,7 @@ while true; do
             tac "$pacman_log" | "$display"
             ;;
         "2) update packages")
-            "$aur_helper" -Syu --needed
+            "$aur_helper" -Syu
             pause
             ;;
         "3) install packages")
