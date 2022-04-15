@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-03-21T10:06:06+0100
+# date:   2022-04-14T21:16:38+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -82,7 +82,7 @@ pacman_downgrade() {
 }
 
 ala_files() {
-    curl -f -s "$1" \
+    curl -fsS "$1" \
         | grep "^<a href=" \
         | sed -e "/.sig\"/d" \
             -e "s/<a href=\"$2/$2/g" \
