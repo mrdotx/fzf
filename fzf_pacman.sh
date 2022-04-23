@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-04-14T21:16:38+0200
+# date:   2022-04-23T16:44:04+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -212,69 +212,69 @@ while true; do
 
     # select executable
     case "$select" in
-        "1) view pacman.log")
-            tac "$pacman_log" | "$display"
-            ;;
-        "2) update packages")
-            "$aur_helper" -Syu
-            pause
-            ;;
-        "3) install packages")
-            aur_execute "Slq" "Sii" "S"
-            pause
-            ;;
-        "3.1) pacman")
-            aur_execute "Slq --repo" "Sii" "S"
-            pause
-            ;;
-        "3.2) aur")
-            aur_execute "Slq --aur" "Sii" "S"
-            pause
-            ;;
-        "4) remove packages")
-            aur_execute "Qq" "Qlii" "Rsn"
-            pause
-            ;;
-        "4.1) aur")
-            aur_execute "Qmq" "Qlii" "Rsn"
-            pause
-            ;;
-        "4.2) explicit installed")
-            aur_execute "Qqe" "Qlii" "Rsn"
-            pause
-            ;;
-        "4.3) without dependencies")
-            aur_execute "Qqt" "Qlii" "Rsn"
-            pause
-            ;;
-        "5) downgrade packages")
-            pacman_downgrade "$pacman_cache"
-            pause
-            ;;
-        "5.1) aur")
-            pacman_downgrade "$aur_cache"
-            pause
-            ;;
-        "5.2) ala")
-            ala_downgrade "$ala_url"
-            pause
-            ;;
-        "6) config")
-            "$auth" "$edit" "$pacman_config"
-            ;;
-        "6.1) aur")
-            "$edit" "$aur_config"
-            ;;
-        "6.2) mirrorlist")
-            "$auth" "$edit" "$pacman_mirrors"
-            ;;
-        "6.3) packages diff")
-            "$auth" pacdiff -f
-            ;;
-        "7) clear cache")
+        7*)
             "$auth" paccache -rvk$pacman_cache_versions
             "$auth" paccache -rvuk0
             "$aur_helper" -c
+            ;;
+        6.3*)
+            "$auth" pacdiff -f
+            ;;
+        6.2*)
+            "$auth" "$edit" "$pacman_mirrors"
+            ;;
+        6.1*)
+            "$edit" "$aur_config"
+            ;;
+        6*)
+            "$auth" "$edit" "$pacman_config"
+            ;;
+        5.2*)
+            ala_downgrade "$ala_url"
+            pause
+            ;;
+        5.1*)
+            pacman_downgrade "$aur_cache"
+            pause
+            ;;
+        5*)
+            pacman_downgrade "$pacman_cache"
+            pause
+            ;;
+        4.3*)
+            aur_execute "Qqt" "Qlii" "Rsn"
+            pause
+            ;;
+        4.2*)
+            aur_execute "Qqe" "Qlii" "Rsn"
+            pause
+            ;;
+        4.1*)
+            aur_execute "Qmq" "Qlii" "Rsn"
+            pause
+            ;;
+        4*)
+            aur_execute "Qq" "Qlii" "Rsn"
+            pause
+            ;;
+        3.2*)
+            aur_execute "Slq --aur" "Sii" "S"
+            pause
+            ;;
+        3.1*)
+            aur_execute "Slq --repo" "Sii" "S"
+            pause
+            ;;
+        3*)
+            aur_execute "Slq" "Sii" "S"
+            pause
+            ;;
+        2*)
+            "$aur_helper" -Syu
+            pause
+            ;;
+        1*)
+            tac "$pacman_log" | "$display"
             ;;
         *)
             # create backup lists to reinstall packages
