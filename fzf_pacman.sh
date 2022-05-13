@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-04-23T16:44:04+0200
+# date:   2022-05-13T08:23:21+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -13,19 +13,21 @@ auth="${EXEC_AS_USER:-sudo}"
 display="$PAGER"
 edit="$EDITOR"
 aur_helper="paru"
+aur_folder="$HOME/.config/paru"
+aur_config="$aur_folder/paru.conf"
 aur_cache="$HOME/.cache/paru/clone"
-aur_config="$HOME/.config/paru/paru.conf"
-aur_backup="$HOME/.config/paru"
 ala_url="https://archive.archlinux.org/packages"
 pacman_log="/var/log/pacman.log"
 pacman_cache="/var/cache/pacman/pkg"
 pacman_cache_versions=2
 pacman_config="/etc/pacman.conf"
 pacman_mirrors="/etc/pacman.d/mirrorlist"
+backup_all="$aur_folder/pkgs_all.txt"
+backup_explicit="$aur_folder/pkgs_explicit.txt"
 
 # help
 script=$(basename "$0")
-help="$script [-h/--help] -- script to manage packages with pacman and aur helper
+help="$script [-h/--help] -- script to manage packages with pacman and $aur_helper
   Usage:
     $script
 
@@ -36,15 +38,21 @@ help="$script [-h/--help] -- script to manage packages with pacman and aur helpe
     display               = $display
     edit                  = $edit
     aur_helper            = $aur_helper
-    aur_cache             = $aur_cache
+    aur_folder            = $aur_folder
     aur_config            = $aur_config
-    aur_backup            = $aur_backup
+    aur_cache             = $aur_cache
     ala_url               = $ala_url
     pacman_log            = $pacman_log
     pacman_cache          = $pacman_cache
     pacman_cache_versions = $pacman_cache_versions
     pacman_config         = $pacman_config
-    pacman_mirrors        = $pacman_mirrors"
+    pacman_mirrors        = $pacman_mirrors
+    backup_all            = $backup_all
+    backup_explicit       = $backup_explicit
+
+  Backup:
+    To reinstall the packages from the backup list, use the following command:
+    $aur_helper -S --needed - < \"$backup_explicit\""
 
 [ -n "$1" ] \
     && printf "%s\n" "$help" \
@@ -56,6 +64,11 @@ log_last_action() {
     grep "$log_filter" "$pacman_log" \
         | tail -n1 \
         | cut -b 2-11
+}
+
+pkg_lists_backup() {
+    "$aur_helper" -Qq > "$backup_all"
+    "$aur_helper" -Qqe > "$backup_explicit"
 }
 
 pkg_files() {
@@ -76,6 +89,8 @@ pkg_fullpath() {
 pacman_downgrade() {
     select=$(pkg_files "$1" \
         | fzf -m -e -i)
+    [ $? -eq 130 ] \
+        && return 130
     [ -n "$select" ] \
         && select="$auth pacman -U $(pkg_fullpath "$1" "$select")" \
         && $select
@@ -92,6 +107,8 @@ ala_files() {
 ala_downgrade() {
     ala_pkg=$("$aur_helper" -Qq \
         | fzf -e -i)
+    [ $? -eq 130 ] \
+        && return 130
     [ -z "$ala_pkg" ] \
         && return
 
@@ -103,6 +120,8 @@ ala_downgrade() {
 
     select=$(ala_files "$url" "$ala_pkg" \
         | fzf -e -i)
+    [ $? -eq 130 ] \
+        && return 130
     [ -n "$select" ] \
         && select="$auth pacman -U $url$select" \
         && $select
@@ -114,15 +133,19 @@ aur_execute() {
         | fzf -m -e -i --preview "$aur_helper -$2 {1}" \
             --preview-window "right:70%:wrap" \
     )
+    [ $? -eq 130 ] \
+        && return 130
     [ -n "$select" ] \
         && select="$aur_helper -$3 $select" \
         && $select
 }
 
 pause() {
-    printf "%s" "The command exited with status $?. "
-    printf "%s" "Press ENTER to continue."
-    read -r "select"
+    ! [ $? -eq 130 ] \
+        && printf "%s" \
+            "The command exited with status $?. " \
+            "Press ENTER to continue." \
+        && read -r select
 }
 
 while true; do
@@ -277,12 +300,7 @@ while true; do
             tac "$pacman_log" | "$display"
             ;;
         *)
-            # create backup lists to reinstall packages
-            # to reinstall the packages:
-            # "aur_helper" -S --needed - < "$aur_backup/explicit_installed_packages.txt"
-            "$aur_helper" -Qq > "$aur_backup/installed_packages.txt"
-            "$aur_helper" -Qqe > "$aur_backup/explicit_installed_packages.txt"
-
+            pkg_lists_backup
             break
             ;;
     esac
