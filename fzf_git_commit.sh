@@ -3,16 +3,21 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_git_commit.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-05-18T16:29:42+0200
+# date:   2022-05-18T16:38:43+0200
 
 # help
 script=$(basename "$0")
-help="$script [-h/--help] -- script to show/checkout commits for a file
+help="$script [-h/--help] -- script to show/checkout commits for a file or
+                                 reset commits for a repository
   Usage:
-    $script <path/file>
+    $script [--reset] <path/file>
+
+  Settings:
+    [--reset] = reset all commits in current repository
 
   Examples:
-    $script <path/file>"
+    $script <path/file>
+    $script --reset"
 
 git_commit() {
     git log --oneline -- "$1" \
