@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# path:   /home/klassiker/.local/share/repos/fzf/fzf_git_commits.sh
+# path:   /home/klassiker/.local/share/repos/fzf/fzf_git_commit.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-05-18T13:08:08+0200
+# date:   2022-05-18T13:15:37+0200
 
 # help
 script=$(basename "$0")
