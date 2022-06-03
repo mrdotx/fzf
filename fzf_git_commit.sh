@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_git_commit.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-05-18T16:38:43+0200
+# date:   2022-06-03T18:39:17+0200
 
 # help
 script=$(basename "$0")
@@ -13,7 +13,7 @@ help="$script [-h/--help] -- script to show/checkout commits for a file or
     $script [--reset] <path/file>
 
   Settings:
-    [--reset] = reset all commits in current repository
+    [--reset] = reset all commits in the current repository folder
 
   Examples:
     $script <path/file>
@@ -28,7 +28,7 @@ git_commit() {
 }
 
 git_commits_reset() {
-    printf "\rDelete all commits in the current respository (YES): " \
+    printf "\rDelete all commits in the current respository folder (YES): " \
         && read -r "key"
     case "$key" in
         YES)
