@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-06-29T18:48:14+0200
+# date:   2022-06-29T19:13:52+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -44,19 +44,35 @@ cpupower_wrapper() {
 get_active_governor() {
     governor=$(cat "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor")
 
-    printf "%s\n" "$1" \
+    printf "%s\n" "$*" \
         | sed "s/$governor/[$governor]/"
+}
 
-    printf "\n%s" \
+get_cpupower_info() {
+    printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n" \
+        "== generic scaling governors ==" \
         "conservative = cpu load (avoid change cpu frequency over short time)" \
         "ondemand     = cpu load (change cpu frequency over short time)" \
         "userspace    = manual defined cpu frequency (scaling_setspeed)" \
         "powersave    = lowest frequency (scaling_min_freq)" \
         "performance  = highest frequency (scaling_max_freq)" \
         "schedutil    = cpu utilization data available (cpu scheduler)"
-}
 
-get_cpupower_info() {
+    printf "== available governors ==\n%s\n\n" \
+        "$(get_active_governor "$(cpupower_wrapper --governors)")"
+
+    printf "== currently used cpufreq policy ==\n%s\n\n" \
+        "$(cpupower_wrapper --policy)"
+
+    printf "== maximum cpu frequency ==\n%s\n\n" \
+        "$(cpupower_wrapper --hwlimits --human)"
+
+    printf "== current cpu frequency ==\n%s\n\n" \
+        "$(cpupower_wrapper --freq --human)"
+
+    printf "== maximum latency on cpu frequency changes ==\n%s\n\n" \
+        "$(cpupower_wrapper --latency --human)"
+
     printf "== used cpu kernel driver ==\n%s\n\n" \
         "$(cpupower_wrapper --driver)"
 
@@ -65,21 +81,6 @@ get_cpupower_info() {
 
     printf "== cpus need to have their frequency coordinated by software ==\n%s\n\n" \
         "$(cpupower_wrapper --affected-cpus)"
-
-    printf "== maximum cpu frequency ==\n%s\n\n" \
-        "$(cpupower_wrapper --hwlimits --human)"
-
-    printf "== maximum latency on cpu frequency changes ==\n%s\n\n" \
-        "$(cpupower_wrapper --latency --human)"
-
-    printf "== current cpu frequency ==\n%s\n\n" \
-        "$(cpupower_wrapper --freq --human)"
-
-    printf "== currently used cpufreq policy ==\n%s\n\n" \
-        "$(cpupower_wrapper --policy)"
-
-    printf "== available governors ==\n"
-    get_active_governor "$(cpupower_wrapper --governors)"
 }
 
 set_governor() {
