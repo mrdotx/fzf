@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-06-29T14:20:56+0200
+# date:   2022-06-29T18:48:14+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -46,6 +46,14 @@ get_active_governor() {
 
     printf "%s\n" "$1" \
         | sed "s/$governor/[$governor]/"
+
+    printf "\n%s" \
+        "conservative = cpu load (avoid change cpu frequency over short time)" \
+        "ondemand     = cpu load (change cpu frequency over short time)" \
+        "userspace    = manual defined cpu frequency (scaling_setspeed)" \
+        "powersave    = lowest frequency (scaling_min_freq)" \
+        "performance  = highest frequency (scaling_max_freq)" \
+        "schedutil    = cpu utilization data available (cpu scheduler)"
 }
 
 get_cpupower_info() {
