@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-06-29T19:13:52+0200
+# date:   2022-07-08T14:54:13+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -35,31 +35,36 @@ help="$script [-h/--help] -- script to manage cpupower
     && exit 0
 
 # helper functions
+highlight_string() {
+    [ -z "$NO_COLOR" ] \
+        && color="\x1b[0;33m" \
+        && reset="\x1b[0m"
+
+    printf "[%s%s%s]" "$color" "$1" "$reset"
+}
+
 cpupower_wrapper() {
     printf "%s\n" "$("$auth" cpupower frequency-info "$@")" \
         | cut -d':' -f2- \
         | awk 'NR>1 {$1=$1;print}'
 }
 
-get_active_governor() {
+get_cpupower_info() {
     governor=$(cat "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor")
 
-    printf "%s\n" "$*" \
-        | sed "s/$governor/[$governor]/"
-}
-
-get_cpupower_info() {
     printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n" \
         "== generic scaling governors ==" \
-        "conservative = cpu load (avoid change cpu frequency over short time)" \
-        "ondemand     = cpu load (change cpu frequency over short time)" \
-        "userspace    = manual defined cpu frequency (scaling_setspeed)" \
-        "powersave    = lowest frequency (scaling_min_freq)" \
-        "performance  = highest frequency (scaling_max_freq)" \
-        "schedutil    = cpu utilization data available (cpu scheduler)"
+        "conservative   = cpu load (avoid change cpu frequency over short time)" \
+        "ondemand       = cpu load (change cpu frequency over short time)" \
+        "userspace      = manual defined cpu frequency (scaling_setspeed)" \
+        "powersave      = lowest frequency (scaling_min_freq)" \
+        "performance    = highest frequency (scaling_max_freq)" \
+        "schedutil      = cpu utilization data available (cpu scheduler)" \
+            | sed "s/$governor  /$(highlight_string "$governor")/"
 
     printf "== available governors ==\n%s\n\n" \
-        "$(get_active_governor "$(cpupower_wrapper --governors)")"
+        "$(cpupower_wrapper --governors)" \
+            | sed "s/$governor/$(highlight_string "$governor")/"
 
     printf "== currently used cpufreq policy ==\n%s\n\n" \
         "$(cpupower_wrapper --policy)"
