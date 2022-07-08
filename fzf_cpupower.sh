@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-07-08T14:54:13+0200
+# date:   2022-07-08T23:18:11+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -44,9 +44,24 @@ highlight_string() {
 }
 
 cpupower_wrapper() {
-    printf "%s\n" "$("$auth" cpupower frequency-info "$@")" \
-        | cut -d':' -f2- \
-        | awk 'NR>1 {$1=$1;print}'
+    case "$1" in
+        --stats)
+            printf "%s" "$("$auth" cpupower frequency-info "$@")" \
+                | cut -d'(' -f1 \
+                | tr ',' '\n' \
+                | sed 's/:/: /g' \
+                | awk 'NR>1 {$1=$1;print}'
+            ;;
+        --boost)
+            printf "%s" "$("$auth" cpupower frequency-info "$@")" \
+                | awk 'NR>2 {$1=$1;print}'
+            ;;
+        *)
+            printf "%s" "$("$auth" cpupower frequency-info "$@")" \
+                | cut -d':' -f2- \
+                | awk 'NR>1 {$1=$1;print}'
+            ;;
+    esac
 }
 
 get_cpupower_info() {
@@ -67,13 +82,20 @@ get_cpupower_info() {
             | sed "s/$governor/$(highlight_string "$governor")/"
 
     printf "== currently used cpufreq policy ==\n%s\n\n" \
-        "$(cpupower_wrapper --policy)"
+        "$(cpupower_wrapper --policy)" \
+            | sed "s/\"$governor\"/$(highlight_string "$governor")/"
 
     printf "== maximum cpu frequency ==\n%s\n\n" \
         "$(cpupower_wrapper --hwlimits --human)"
 
+    printf "== boost state support ==\n%s\n\n" \
+        "$(cpupower_wrapper --boost)"
+
     printf "== current cpu frequency ==\n%s\n\n" \
         "$(cpupower_wrapper --freq --human)"
+
+    printf "== cpu frequency statistics ==\n%s\n\n" \
+        "$(cpupower_wrapper --stats --human)"
 
     printf "== maximum latency on cpu frequency changes ==\n%s\n\n" \
         "$(cpupower_wrapper --latency --human)"
