@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-07-08T23:18:11+0200
+# date:   2022-07-09T10:24:24+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -44,20 +44,26 @@ highlight_string() {
 }
 
 cpupower_wrapper() {
+    info=$("$auth" cpupower frequency-info "$@")
+
+    [ "$(printf "%s" "$info" | wc -l)" -lt 1 ] \
+        && printf "Cannot determine or is not supported." \
+        && return
+
     case "$1" in
         --stats)
-            printf "%s" "$("$auth" cpupower frequency-info "$@")" \
+            printf "%s" "$info" \
                 | cut -d'(' -f1 \
                 | tr ',' '\n' \
                 | sed 's/:/: /g' \
                 | awk 'NR>1 {$1=$1;print}'
             ;;
         --boost)
-            printf "%s" "$("$auth" cpupower frequency-info "$@")" \
+            printf "%s" "$info" \
                 | awk 'NR>2 {$1=$1;print}'
             ;;
         *)
-            printf "%s" "$("$auth" cpupower frequency-info "$@")" \
+            printf "%s" "$info" \
                 | cut -d':' -f2- \
                 | awk 'NR>1 {$1=$1;print}'
             ;;
