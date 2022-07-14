@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-07-09T10:24:24+0200
+# date:   2022-07-14T19:32:12+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -94,9 +94,6 @@ get_cpupower_info() {
     printf "== maximum cpu frequency ==\n%s\n\n" \
         "$(cpupower_wrapper --hwlimits --human)"
 
-    printf "== boost state support ==\n%s\n\n" \
-        "$(cpupower_wrapper --boost)"
-
     printf "== current cpu frequency ==\n%s\n\n" \
         "$(cpupower_wrapper --freq --human)"
 
@@ -106,14 +103,17 @@ get_cpupower_info() {
     printf "== maximum latency on cpu frequency changes ==\n%s\n\n" \
         "$(cpupower_wrapper --latency --human)"
 
-    printf "== used cpu kernel driver ==\n%s\n\n" \
-        "$(cpupower_wrapper --driver)"
+    printf "== boost state support ==\n%s\n\n" \
+        "$(cpupower_wrapper --boost)"
 
     printf "== cpus run at the same hardware frequency ==\n%s\n\n" \
         "$(cpupower_wrapper --related-cpus)"
 
     printf "== cpus need to have their frequency coordinated by software ==\n%s\n\n" \
         "$(cpupower_wrapper --affected-cpus)"
+
+    printf "== used cpu kernel driver ==\n%s\n\n" \
+        "$(cpupower_wrapper --driver)"
 }
 
 set_governor() {
