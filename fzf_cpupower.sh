@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-07-14T19:32:12+0200
+# date:   2022-07-18T12:52:39+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -75,12 +75,12 @@ get_cpupower_info() {
 
     printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n" \
         "== generic scaling governors ==" \
-        "conservative   = cpu load (avoid change cpu frequency over short time)" \
-        "ondemand       = cpu load (change cpu frequency over short time)" \
-        "userspace      = manual defined cpu frequency (scaling_setspeed)" \
-        "powersave      = lowest frequency (scaling_min_freq)" \
-        "performance    = highest frequency (scaling_max_freq)" \
-        "schedutil      = cpu utilization data available (cpu scheduler)" \
+        "conservative   = current load (more gradually than ondemand)" \
+        "ondemand       = scales cpu frequency according to current load" \
+        "userspace      = user specified cpu frequency (scaling_setspeed)" \
+        "powersave      = minimum cpu frequency (scaling_min_freq)" \
+        "performance    = maximum cpu frequency (scaling_max_freq)" \
+        "schedutil      = scheduler-driven cpu frequency" \
             | sed "s/$governor  /$(highlight_string "$governor")/"
 
     printf "== available governors ==\n%s\n\n" \
@@ -125,8 +125,7 @@ set_governor() {
                     --preview-window "right:75%")
 
     [ -n "$select" ] \
-        && select="$auth cpupower frequency-set --governor $select" \
-        && $select
+        && "$auth" cpupower frequency-set --governor "$select"
 }
 
 pause() {
