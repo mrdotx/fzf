@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-07-18T12:52:39+0200
+# date:   2022-07-29T19:45:39+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -117,15 +117,9 @@ get_cpupower_info() {
 }
 
 set_governor() {
-    select=$(for value in $(cpupower_wrapper --governors); do
-                printf "%s\n" "$value"
-            done \
-                | fzf -e -i --cycle \
-                    --preview "printf \"%s\" \"$(get_cpupower_info)\"" \
-                    --preview-window "right:75%")
-
-    [ -n "$select" ] \
-        && "$auth" cpupower frequency-set --governor "$select"
+    [ -n "$1" ] \
+        && "$auth" cpupower frequency-set --governor \
+            "$(printf "%s" "$1" | cut -d' ' -f2)"
 }
 
 pause() {
@@ -147,17 +141,19 @@ toggle_cpupower_service() {
 while true; do
     # menu
     select=$(printf "%s\n" \
-                "1) set governor" \
-                "2) edit config" \
-                "3) toggle service" \
+            "$(for value in $(cpupower_wrapper --governors); do
+                printf "set %s\n" "$value"
+            done)" \
+            "edit config" \
+            "toggle service" \
         | fzf -e -i --cycle --preview "case {1} in
-                3*)
+                toggle*)
                     printf \"%s\" \"$($auth systemctl status $service)\"
                     ;;
-                2*)
+                edit*)
                     cat \"$config\"
                     ;;
-                1*)
+                set*)
                     printf \"%s\" \"$(get_cpupower_info)\"
                     ;;
             esac" \
@@ -166,15 +162,15 @@ while true; do
 
     # select executable
     case "$select" in
-        3*)
-            toggle_cpupower_service
+        set*)
+            set_governor "$select" \
+                || pause
             ;;
-        2*)
+        edit*)
             "$auth" "$edit" "$config"
             ;;
-        1*)
-            set_governor \
-                || pause
+        toggle*)
+            toggle_cpupower_service
             ;;
         *)
             break

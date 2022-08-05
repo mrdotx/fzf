@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-04-23T16:47:53+0200
+# date:   2022-07-29T19:54:10+0200
 
 # help
 script=$(basename "$0")
@@ -21,10 +21,10 @@ help="$script [-h/--help] -- script to manage files/folders with trash-cli
 while true; do
     # menu
     select=$(printf "%s\n" \
-                "1) restore from trash" \
-                "2) empty trash" \
-                "3) remove from trash" \
-                "4) put to trash" \
+                "restore from trash" \
+                "empty trash" \
+                "remove from trash" \
+                "put to trash" \
         | fzf -e -i --preview "trash-list" \
             --preview-window "right:75%:wrap" \
     )
@@ -58,16 +58,16 @@ while true; do
 
     # select executables
     case "$select" in
-        4*)
+        put*)
             trash_put
             ;;
-        3*)
+        remove*)
             trash_remove
             ;;
-        2*)
+        empty*)
             trash-empty
             ;;
-        1*)
+        restore*)
             trash-restore
             ;;
         *)
