@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-07-29T19:45:39+0200
+# date:   2022-08-09T09:48:28+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -157,7 +157,7 @@ while true; do
                     printf \"%s\" \"$(get_cpupower_info)\"
                     ;;
             esac" \
-                --preview-window "right:75%" \
+                --preview-window "right:75%,wrap" \
     )
 
     # select executable

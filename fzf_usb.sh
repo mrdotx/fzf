@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_usb.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-07-10T21:50:37+0200
+# date:   2022-08-09T09:49:39+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -89,7 +89,7 @@ select_usb() {
                                         -e '/./{H;$!d;}' \
                                         -e 'x;/{1} {2} {3} {4}/!d;' \
                                     | sed '/^$/d'" \
-            --preview-window "right:75%")
+            --preview-window "right:75%,wrap")
 
     [ -n "$select" ] \
         && bind=$(printf "bind\nunbind\nrebind" \
@@ -98,7 +98,7 @@ select_usb() {
                                         -e '/./{H;$!d;}' \
                                         -e 'x;/$select/!d;' \
                                     | sed '/^$/d'" \
-            --preview-window "right:75%")
+            --preview-window "right:75%,wrap")
 
     [ -n "$bind" ] \
         && usb "$bind"
