@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-08-13T12:02:57+0200
+# date:   2022-08-13T12:25:30+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -23,7 +23,7 @@ unmount() {
             select=$(findmnt -r -o TARGET \
                 | grep "/mnt\|$mount_dir/" \
                 | sort \
-            | fzf -m -e -i --preview \
+            | fzf -e -i --cycle --preview \
                     "findmnt -o TARGET,FSTYPE,SOURCE -T /{1}" \
                 --preview-window "right:70%" \
             )
@@ -53,7 +53,7 @@ mount_usb() {
                             || $2=="rom"&&$4=="" \
                             || $3=="1,4M"&&$4=="") \
                         printf "%s\n",$1}' \
-                | fzf -m -e -i --preview \
+                | fzf -e -i --cycle --preview \
                         "lsblk -po 'name,type,fstype,fsver,label,size' /{1}" \
                     --preview-window "right:70%" \
             )"
@@ -114,7 +114,7 @@ mount_remote() {
                 | grep -v -e "#" -e "^\s*$" \
                 | cut -d ";" -f1 \
                 | tr -d ' ' \
-                | fzf -m -e -i --preview \
+                | fzf -e -i --cycle --preview \
                         "printf \"%s\" \"$remote_config\" \
                             | grep {1} \
                             | sed \"s/^ *//g\"" \
@@ -158,7 +158,7 @@ mount_image() {
             ;;
         *)
             select=$(printf "%s" "${images##*/}" \
-                | fzf -m -e -i --preview \
+                | fzf -e -i --cycle --preview \
                         "printf \"%s\" \"$images\" \
                             | grep {1} " \
                     --preview-window "right:70%" \
@@ -188,7 +188,7 @@ mount_android() {
         *)
             select=$(simple-mtpfs -l 2>/dev/null \
                 | cut -d ":" -f1 \
-                | fzf -m -e -i --preview \
+                | fzf -e -i --cycle --preview \
                         "simple-mtpfs --device {1} -l 2>/dev/null" \
                     --preview-window "right:70%"
             )
@@ -217,7 +217,7 @@ eject_dvd() {
             select="$(lsblk -nrpo "name,type,size,mountpoint" \
                 | awk '$2=="rom" \
                     {printf "%s\n",$1}' \
-                | fzf -m -e -i --preview \
+                | fzf -e -i --cycle --preview \
                         "lsblk -po 'name,type,fstype,fsver,label,size' /{1}" \
                     --preview-window "right:70%" \
             )"
@@ -239,7 +239,7 @@ case $(printf "%s\n" \
     "mount image" \
     "mount android" \
     "eject dvd" \
-    | fzf -m -e -i --preview "case {1}{2} in
+    | fzf -e -i --cycle --preview "case {1}{2} in
     unmount)
         printf \"%s\" \"$(unmount preview)\"
         ;;
