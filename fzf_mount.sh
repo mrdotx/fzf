@@ -3,7 +3,11 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-08-13T12:25:30+0200
+# date:   2022-08-14T20:54:40+0200
+
+# speed up script and avoid language problems by using standard c
+LC_ALL=C
+LANG=C
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -11,20 +15,37 @@ auth="${EXEC_AS_USER:-sudo}"
 
 #config
 mount_dir="/tmp"
-image_folder="$HOME/Downloads"
+image_dir="$HOME/Downloads"
+
+# help
+script=$(basename "$0")
+help="$script [-h/--help] -- script to un-/mount locations/devices
+  Usage:
+    $script
+
+  Examples:
+    $script
+
+  Config:
+    mount_dir = $mount_dir
+    image_dir = $image_dir"
+
+[ -n "$1" ] \
+    && printf "%s\n" "$help" \
+    && exit 0
 
 unmount() {
     case $1 in
         preview)
-            findmnt -r -o TARGET,FSTYPE,SOURCE\
-                | grep "/mnt\|$mount_dir/"
+            findmnt -lo TARGET,FSTYPE,SOURCE \
+                | grep "^TARGET\|/mnt\|$mount_dir/"
             ;;
         *)
-            select=$(findmnt -r -o TARGET \
+            select=$(findmnt -ro TARGET \
                 | grep "/mnt\|$mount_dir/" \
                 | sort \
             | fzf -e -i --cycle --preview \
-                    "findmnt -o TARGET,FSTYPE,SOURCE -T /{1}" \
+                    "findmnt -T /{1}" \
                 --preview-window "right:70%" \
             )
 
@@ -33,6 +54,7 @@ unmount() {
 
             $auth umount "$select" \
                 && printf "%s unmounted\n" "$select" \
+                && sleep 1 \
                 && rm -d "$select"
             ;;
     esac
@@ -41,20 +63,21 @@ unmount() {
 mount_usb() {
     case $1 in
         preview)
-            lsblk -nrpo "name,type,fstype,fsver,label,size,mountpoint" \
-                | awk '{if ($2=="part"&&$7=="" \
-                            || $2=="rom"&&$7=="" \
-                            || $6=="1,4M"&&$7=="") \
-                        printf "%s %s %s %s %s %s %s\n",$1,$2,$3,$4,$5,$6,$7}'
+            lsblk -lpo "name,type,fstype,size,mountpoint" \
+                | awk 'NR==1 \
+                        || $1!~"/dev/loop"&&$2=="part"&&$5=="" \
+                        || $2=="rom"&&$3~"iso"&&$5=="" \
+                        || $4=="1,4M"&&$5=="" \
+                    {printf "%s\n",$0}'
             ;;
         *)
-            select="$(lsblk -nrpo "name,type,size,mountpoint" \
-                | awk '{if ($2=="part"&&$4=="" \
-                            || $2=="rom"&&$4=="" \
-                            || $3=="1,4M"&&$4=="") \
-                        printf "%s\n",$1}' \
+            select="$(lsblk -nrpo "name,type,fstype,size,mountpoint" \
+                | awk '$1!~"/dev/loop"&&$2=="part"&&$5=="" \
+                        || $2=="rom"&&$3~"iso"&&$5=="" \
+                        || $4=="1,4M"&&$5=="" \
+                    {printf "%s\n",$1}' \
                 | fzf -e -i --cycle --preview \
-                        "lsblk -po 'name,type,fstype,fsver,label,size' /{1}" \
+                        "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
                     --preview-window "right:70%" \
             )"
 
@@ -69,15 +92,21 @@ mount_usb() {
                 && case "$partition_type" in
                     vfat)
                         $auth mount -t "$partition_type" \
-                            "$select" \
-                            "$mount_point" \
                             -o rw,umask=0000 \
+                            "$select" \
+                            "$mount_point"
                         ;;
                     exfat)
                         $auth mount \
-                            "$select" \
-                            "$mount_point" \
                             -o rw,umask=0000 \
+                            "$select" \
+                            "$mount_point"
+                        ;;
+                    iso*)
+                        $auth mount \
+                            -o ro,loop \
+                            "$select" \
+                            "$mount_point"
                         ;;
                     *)
                         $auth mount \
@@ -93,8 +122,8 @@ mount_usb() {
     esac
 }
 
-mount_remote() {
-    remote_config="
+mount_rclone() {
+    rclone_config="
         # rclone config
         webde;          /
         dropbox;        /
@@ -105,17 +134,17 @@ mount_remote() {
 
     case $1 in
         preview)
-            printf "%s" "$remote_config" \
+            printf "%s" "$rclone_config" \
                 | grep -v -e "^\s*$" \
                 | sed "s/^ *//g"
             ;;
         *)
-            select=$(printf "%s" "$remote_config" \
+            select=$(printf "%s" "$rclone_config" \
                 | grep -v -e "#" -e "^\s*$" \
                 | cut -d ";" -f1 \
                 | tr -d ' ' \
                 | fzf -e -i --cycle --preview \
-                        "printf \"%s\" \"$remote_config\" \
+                        "printf \"%s\" \"$rclone_config\" \
                             | grep {1} \
                             | sed \"s/^ *//g\"" \
                     --preview-window "right:70%" \
@@ -124,7 +153,7 @@ mount_remote() {
             [ -z "$select" ] \
                 && return 0
 
-            remote_directory=$(printf "%s" "$remote_config" \
+            remote_path=$(printf "%s" "$rclone_config" \
                 | grep "$select;" \
                 | cut -d ";" -f2 \
                 | tr -d ' ' \
@@ -134,9 +163,8 @@ mount_remote() {
 
             [ ! -d "$mount_point" ] \
                 && mkdir "$mount_point" \
-                && sleep 1 \
                 && rclone mount --daemon \
-                    "$select:$remote_directory" \
+                    "$select:$remote_path" \
                     "$mount_point" \
                 && printf "%s mounted to %s\n" "$select" "$mount_point"
             ;;
@@ -144,7 +172,7 @@ mount_remote() {
 }
 
 mount_image() {
-    images=$(find "$image_folder" -type f \
+    images=$(find "$image_dir" -type f \
                 -iname "*.iso" -o \
                 -iname "*.img" -o \
                 -iname "*.bin" -o \
@@ -157,7 +185,8 @@ mount_image() {
             printf "%s" "$images"
             ;;
         *)
-            select=$(printf "%s" "${images##*/}" \
+            select=$(printf "%s" "$images" \
+                | sed "s#$image_dir/##g" \
                 | fzf -e -i --cycle --preview \
                         "printf \"%s\" \"$images\" \
                             | grep {1} " \
@@ -171,10 +200,10 @@ mount_image() {
 
             [ ! -d "$mount_point" ] \
                 && mkdir "$mount_point" \
-                && $auth mount -r \
-                    "$image_folder/$select" \
+                && $auth mount \
+                    -o ro,loop \
+                    "$image_dir/$select" \
                     "$mount_point" \
-                    -o loop \
                 && printf "%s mounted to %s\n" "$select" "$mount_point"
             ;;
     esac
@@ -209,16 +238,17 @@ mount_android() {
 eject_dvd() {
     case $1 in
         preview)
-            lsblk -nrpo "name,type,fstype,fsver,label,size,mountpoint" \
-                | awk '$2=="rom" \
-                    {printf "%s %s %s %s %s %s %s\n",$1,$2,$3,$4,$5,$6,$7}'
+            lsblk -lpo "name,type,fstype,size,mountpoint" \
+                | awk 'NR==1 \
+                        || $2=="rom"&&$3~"iso" \
+                    {printf "%s\n",$0}'
             ;;
         *)
-            select="$(lsblk -nrpo "name,type,size,mountpoint" \
-                | awk '$2=="rom" \
+            select="$(lsblk -nrpo "name,type,fstype" \
+                | awk '$2=="rom"&&$3~"iso" \
                     {printf "%s\n",$1}' \
                 | fzf -e -i --cycle --preview \
-                        "lsblk -po 'name,type,fstype,fsver,label,size' /{1}" \
+                        "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
                     --preview-window "right:70%" \
             )"
 
@@ -234,28 +264,28 @@ eject_dvd() {
 # menu
 case $(printf "%s\n" \
     "unmount" \
-    "mount usb" \
-    "mount remote" \
-    "mount image" \
-    "mount android" \
-    "eject dvd" \
-    | fzf -e -i --cycle --preview "case {1}{2} in
+    "usb" \
+    "rclone" \
+    "image" \
+    "android" \
+    "eject" \
+    | fzf -e -i --cycle --preview "case {1} in
     unmount)
         printf \"%s\" \"$(unmount preview)\"
         ;;
-    mount*usb)
+    usb)
         printf \"%s\" \"$(mount_usb preview)\"
         ;;
-    mount*remote)
-        printf \"%s\" \"$(mount_remote preview)\"
+    rclone)
+        printf \"%s\" \"$(mount_rclone preview)\"
         ;;
-    mount*image)
+    image)
         printf \"%s\" \"$(mount_image preview)\"
         ;;
-    mount*android)
+    android)
         printf \"%s\" \"$(mount_android preview)\"
         ;;
-    eject*dvd)
+    eject)
         printf \"%s\" \"$(eject_dvd preview)\"
         ;;
     esac " \
@@ -265,23 +295,23 @@ case $(printf "%s\n" \
         unmount \
             && "$0"
         ;;
-    "mount usb")
+    "usb")
         mount_usb \
             && "$0"
         ;;
-    "mount remote")
-        mount_remote \
+    "rclone")
+        mount_rclone \
             && "$0"
         ;;
-    "mount image")
+    "image")
         mount_image \
             && "$0"
         ;;
-    "mount android")
+    "android")
         mount_android \
             && "$0"
         ;;
-    "eject dvd")
+    "eject")
         eject_dvd \
             && "$0"
         ;;
