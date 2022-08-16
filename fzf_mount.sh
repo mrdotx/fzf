@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-08-14T20:54:40+0200
+# date:   2022-08-15T19:56:46+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -112,9 +112,8 @@ mount_usb() {
                         $auth mount \
                             "$select" \
                             "$mount_point"
-                        user="$(whoami)"
-                        user_group="$(groups | cut -d " " -f1)"
-                        $auth chown "$user":"$user_group" 741 "$mount_point"
+                        $auth chown "$(whoami)": "$mount_point"
+                        $auth chmod 755 "$mount_point"
                         ;;
                     esac \
                 && printf "%s mounted to %s\n" "$select" "$mount_point"
