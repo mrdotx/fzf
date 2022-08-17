@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-08-15T19:56:46+0200
+# date:   2022-08-16T20:20:38+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -37,7 +37,7 @@ help="$script [-h/--help] -- script to un-/mount locations/devices
 unmount() {
     case $1 in
         preview)
-            findmnt -lo TARGET,FSTYPE,SOURCE \
+            findmnt -lo TARGET,FSTYPE,SOURCE,SIZE \
                 | grep "^TARGET\|/mnt\|$mount_dir/"
             ;;
         *)
@@ -45,14 +45,15 @@ unmount() {
                 | grep "/mnt\|$mount_dir/" \
                 | sort \
             | fzf -e -i --cycle --preview \
-                    "findmnt -T /{1}" \
+                    "findmnt -o TARGET,FSTYPE,SOURCE,SIZE,LABEL -T /{1}" \
                 --preview-window "right:70%" \
             )
 
             [ -z "$select" ] \
                 && return 0
 
-            $auth umount "$select" \
+            printf "please wait until all write processes are finished...\n" \
+                && $auth umount "$select" \
                 && printf "%s unmounted\n" "$select" \
                 && sleep 1 \
                 && rm -d "$select"
@@ -260,6 +261,13 @@ eject_dvd() {
     esac
 }
 
+exit_status() {
+    printf "%s" \
+        "The command exited with status $?. " \
+        "Press ENTER to continue." \
+    && read -r select
+}
+
 # menu
 case $(printf "%s\n" \
     "unmount" \
@@ -292,26 +300,32 @@ case $(printf "%s\n" \
     ) in
     "unmount")
         unmount \
-            && "$0"
+            || exit_status
+        "$0"
         ;;
     "usb")
         mount_usb \
-            && "$0"
+            || exit_status
+        "$0"
         ;;
     "rclone")
         mount_rclone \
-            && "$0"
+            || exit_status
+        "$0"
         ;;
     "image")
         mount_image \
-            && "$0"
+            || exit_status
+        "$0"
         ;;
     "android")
         mount_android \
-            && "$0"
+            || exit_status
+        "$0"
         ;;
     "eject")
         eject_dvd \
-            && "$0"
+            || exit_status
+        "$0"
         ;;
 esac
