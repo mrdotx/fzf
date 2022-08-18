@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-05-13T08:23:21+0200
+# date:   2022-08-16T18:31:26+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -140,7 +140,7 @@ aur_execute() {
         && $select
 }
 
-pause() {
+exit_status() {
     ! [ $? -eq 130 ] \
         && printf "%s" \
             "The command exited with status $?. " \
@@ -254,47 +254,47 @@ while true; do
             ;;
         5.2*)
             ala_downgrade "$ala_url"
-            pause
+            exit_status
             ;;
         5.1*)
             pacman_downgrade "$aur_cache"
-            pause
+            exit_status
             ;;
         5*)
             pacman_downgrade "$pacman_cache"
-            pause
+            exit_status
             ;;
         4.3*)
             aur_execute "Qqt" "Qlii" "Rsn"
-            pause
+            exit_status
             ;;
         4.2*)
             aur_execute "Qqe" "Qlii" "Rsn"
-            pause
+            exit_status
             ;;
         4.1*)
             aur_execute "Qmq" "Qlii" "Rsn"
-            pause
+            exit_status
             ;;
         4*)
             aur_execute "Qq" "Qlii" "Rsn"
-            pause
+            exit_status
             ;;
         3.2*)
             aur_execute "Slq --aur" "Sii" "S"
-            pause
+            exit_status
             ;;
         3.1*)
             aur_execute "Slq --repo" "Sii" "S"
-            pause
+            exit_status
             ;;
         3*)
             aur_execute "Slq" "Sii" "S"
-            pause
+            exit_status
             ;;
         2*)
             "$aur_helper" -Syu
-            pause
+            exit_status
             ;;
         1*)
             tac "$pacman_log" | "$display"
