@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-08-09T09:48:28+0200
+# date:   2022-08-18T07:07:58+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -122,12 +122,11 @@ set_governor() {
             "$(printf "%s" "$1" | cut -d' ' -f2)"
 }
 
-pause() {
-    ! [ $? -ge 1 ] \
-        && printf "%s" \
-            "The command exited with status $?. " \
-            "Press ENTER to continue." \
-        && read -r select
+exit_status() {
+    printf "%s" \
+        "The command exited with status $?. " \
+        "Press ENTER to continue." \
+    read -r select
 }
 
 toggle_cpupower_service() {
@@ -164,7 +163,7 @@ while true; do
     case "$select" in
         set*)
             set_governor "$select" \
-                || pause
+                || exit_status
             ;;
         edit*)
             "$auth" "$edit" "$config"
