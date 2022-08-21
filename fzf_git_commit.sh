@@ -3,14 +3,14 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_git_commit.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-06-03T18:39:17+0200
+# date:   2022-08-20T20:00:33+0200
 
 # help
 script=$(basename "$0")
-help="$script [-h/--help] -- script to show/checkout commits for a file or
+help="$script [-h/--help] -- script to show/checkout commits for files or
                                  reset commits for a repository
   Usage:
-    $script [--reset] <path/file>
+    $script [--reset] <path/file> [path/file1] [path/file2]
 
   Settings:
     [--reset] = reset all commits in the current repository folder
@@ -20,11 +20,17 @@ help="$script [-h/--help] -- script to show/checkout commits for a file or
     $script --reset"
 
 git_commit() {
-    git log --oneline -- "$1" \
-        | fzf +s +m -e  \
-            --preview "git show --color $(printf "{1}" | cut -d" " -f1)" \
-            --preview-window "right:70%" \
-        | cut -d" " -f1
+    for entry in "$@"; do
+        commit_id=$(git log --oneline -- "$entry" \
+            | fzf +s +m -e  \
+                --preview "git show --color $(printf "{1}" | cut -d" " -f1)" \
+                --preview-window "right:70%" \
+            | cut -d" " -f1)
+
+        [ -n "$commit_id" ] \
+            && git checkout "$commit_id" -- "$entry" \
+            && git restore --staged -- "$entry"
+    done
 }
 
 git_commits_reset() {
@@ -71,9 +77,6 @@ case "$1" in
         ! [ -f "$1" ] \
             && exit 1
 
-        commit_id="$(git_commit "$1")"
-
-        [ -n "$commit_id" ] \
-            && git checkout "$commit_id" -- "$1"
+        git_commit "$@"
         ;;
 esac
