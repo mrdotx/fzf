@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_usb.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-08-09T09:49:39+0200
+# date:   2022-08-31T18:24:28+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -53,7 +53,8 @@ logical_device() {
     }
 
     $auth sh -c "printf '%s' \"$(device "$1")\" \
-        > \"$path_drivers/$2\"" 2>/dev/null
+        > \"$path_drivers/$2\"" 2>/dev/null \
+        || return 0
 }
 
 usb() {
