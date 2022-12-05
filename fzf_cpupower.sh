@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-08-18T07:07:58+0200
+# date:   2022-12-05T19:04:36+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -62,6 +62,11 @@ cpupower_wrapper() {
             printf "%s" "$info" \
                 | awk 'NR>2 {$1=$1;print}'
             ;;
+        --perf)
+            printf "%s" "$info" \
+                | awk 'NR>1 {$1=$1;print}' \
+                | sed 's/AMD PSTATE //g'
+            ;;
         *)
             printf "%s" "$info" \
                 | cut -d':' -f2- \
@@ -105,6 +110,9 @@ get_cpupower_info() {
 
     printf "== boost state support ==\n%s\n\n" \
         "$(cpupower_wrapper --boost)"
+
+    printf "== performances and frequencies capabilities of cppc ==\n%s\n\n" \
+        "$(cpupower_wrapper --perf)"
 
     printf "== cpus run at the same hardware frequency ==\n%s\n\n" \
         "$(cpupower_wrapper --related-cpus)"
@@ -156,7 +164,7 @@ while true; do
                     printf \"%s\" \"$(get_cpupower_info)\"
                     ;;
             esac" \
-                --preview-window "right:75%,wrap" \
+                --preview-window "right:80%,wrap" \
     )
 
     # select executable
