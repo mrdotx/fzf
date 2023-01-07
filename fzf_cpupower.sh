@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-12-05T19:04:36+0100
+# date:   2023-01-07T18:36:37+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -130,10 +130,19 @@ set_governor() {
             "$(printf "%s" "$1" | cut -d' ' -f2)"
 }
 
+set_frequency() {
+    printf "Frequencies can be passed in Hz, kHz, MHz, GHz, or THz.\n"
+    printf "e.g. 1400MHz, leave blank to return to the menu without changes.\n"
+    printf "\n\r%s to: " "$1" \
+        && read -r frequency
+    [ -n "$frequency" ] \
+        && "$auth" cpupower frequency-set "$2" "$frequency"
+}
+
 exit_status() {
     printf "%s" \
         "The command exited with status $?. " \
-        "Press ENTER to continue." \
+        "Press ENTER to continue."
     read -r select
 }
 
@@ -151,6 +160,9 @@ while true; do
             "$(for value in $(cpupower_wrapper --governors); do
                 printf "set %s\n" "$value"
             done)" \
+            "set frequency" \
+            "set min frequency" \
+            "set max frequency" \
             "edit config" \
             "toggle service" \
         | fzf -e -i --cycle --preview "case {1} in
@@ -169,6 +181,18 @@ while true; do
 
     # select executable
     case "$select" in
+        set*max*frequency)
+            set_frequency "$select" "-u" \
+                || exit_status
+            ;;
+        set*min*frequency)
+            set_frequency "$select" "-d" \
+                || exit_status
+            ;;
+        set*frequency)
+            set_frequency "$select" "-f" \
+                || exit_status
+            ;;
         set*)
             set_governor "$select" \
                 || exit_status
