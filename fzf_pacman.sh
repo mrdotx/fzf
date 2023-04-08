@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-08-16T18:31:26+0200
+# date:   2023-04-08T09:44:52+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -152,7 +152,7 @@ while true; do
     # menu
     select=$(printf "%s\n" \
                 "1) view pacman.log" \
-                "2) update packages" \
+                "2) system upgrade" \
                 "3) install packages" \
                 "3.1) pacman" \
                 "3.2) aur" \
@@ -160,16 +160,16 @@ while true; do
                 "4.1) aur" \
                 "4.2) explicit installed" \
                 "4.3) without dependencies" \
-                "5) downgrade packages" \
+                "5) change packages" \
                 "5.1) aur" \
                 "5.2) ala" \
                 "6) config" \
                 "6.1) aur" \
                 "6.2) mirrorlist" \
-                "6.3) packages diff" \
-                "7) clear cache" \
+                "7) packages diff" \
+                "8) clear cache" \
         | fzf -e -i --cycle --preview "case {1} in
-                7*)
+                8*)
                     printf \":: old packages\n\"
                     \"$auth\" paccache -dvk$pacman_cache_versions
                     printf \":: uninstalled packages\n\"
@@ -177,7 +177,7 @@ while true; do
                     printf \":: orphan packages\n\"
                     \"$aur_helper\" -Qdtq
                     ;;
-                6.3*)
+                7*)
                     \"$auth\" pacdiff -f -o
                     ;;
                 6.2*)
@@ -235,12 +235,12 @@ while true; do
 
     # select executable
     case "$select" in
-        7*)
+        8*)
             "$auth" paccache -rvk$pacman_cache_versions
             "$auth" paccache -rvuk0
             "$aur_helper" -c
             ;;
-        6.3*)
+        7*)
             "$auth" pacdiff -f
             ;;
         6.2*)
