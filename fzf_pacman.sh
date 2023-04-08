@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-08T09:44:52+0200
+# date:   2023-04-08T09:56:53+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -166,10 +166,10 @@ while true; do
                 "6) config" \
                 "6.1) aur" \
                 "6.2) mirrorlist" \
-                "7) packages diff" \
-                "8) clear cache" \
+                "6.3) diff" \
+                "7) clear cache" \
         | fzf -e -i --cycle --preview "case {1} in
-                8*)
+                7*)
                     printf \":: old packages\n\"
                     \"$auth\" paccache -dvk$pacman_cache_versions
                     printf \":: uninstalled packages\n\"
@@ -177,7 +177,7 @@ while true; do
                     printf \":: orphan packages\n\"
                     \"$aur_helper\" -Qdtq
                     ;;
-                7*)
+                6.3*)
                     \"$auth\" pacdiff -f -o
                     ;;
                 6.2*)
@@ -235,12 +235,12 @@ while true; do
 
     # select executable
     case "$select" in
-        8*)
+        7*)
             "$auth" paccache -rvk$pacman_cache_versions
             "$auth" paccache -rvuk0
             "$aur_helper" -c
             ;;
-        7*)
+        6.3*)
             "$auth" pacdiff -f
             ;;
         6.2*)
