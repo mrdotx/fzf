@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-08T09:56:53+0200
+# date:   2023-04-14T08:24:46+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -166,7 +166,7 @@ while true; do
                 "6) config" \
                 "6.1) aur" \
                 "6.2) mirrorlist" \
-                "6.3) diff" \
+                "6.3) diff packages" \
                 "7) clear cache" \
         | fzf -e -i --cycle --preview "case {1} in
                 7*)
