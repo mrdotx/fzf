@@ -3,37 +3,50 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_git_commit.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-08-20T20:00:33+0200
+# date:   2023-04-26T08:29:15+0200
 
 # help
 script=$(basename "$0")
 help="$script [-h/--help] -- script to show/checkout commits for files or
                                  reset commits for a repository
   Usage:
-    $script [--reset] <path/file> [path/file1] [path/file2]
+    $script [--log] [--reset] <path/file> [path/file1] [path/file2]
 
   Settings:
+    [--log]   = show commit logs
     [--reset] = reset all commits in the current repository folder
 
   Examples:
     $script <path/file>
+    $script --log <path/file>
     $script --reset"
+
+git_log() {
+    c1="%C(yellow)"
+    c2="%C(brightblue)"
+    c3="%C(brightmagenta)"
+    c4="%C(brightcyan)"
+    cr="%C(reset)"
+    pretty="$c1%h $c2%cs $c3%G? $c4%an:$cr %s"
+
+    git log --pretty="$pretty" "$@"
+}
 
 git_commit() {
     for entry in "$@"; do
-        commit_id=$(git log --oneline -- "$entry" \
-            | fzf +s +m -e  \
-                --preview "git show --color $(printf "{1}" | cut -d" " -f1)" \
-                --preview-window "right:70%" \
+        commit_id=$(git_log "$entry" \
+            | fzf -e +s --cycle \
+                --preview "git show --color $(printf "{1}")" \
+                --preview-window "up:75%" \
             | cut -d" " -f1)
 
         [ -n "$commit_id" ] \
-            && git checkout "$commit_id" -- "$entry" \
-            && git restore --staged -- "$entry"
+            && git checkout "$commit_id" "$entry" \
+            && git restore --staged "$entry"
     done
 }
 
-git_commits_reset() {
+git_commit_reset() {
     printf "\rDelete all commits in the current respository folder (YES): " \
         && read -r "key"
     case "$key" in
@@ -70,8 +83,13 @@ case "$1" in
     -h | --help | "")
         printf "%s\n" "$help"
         ;;
+    --log)
+        shift
+
+        git_log "$@"
+        ;;
     --reset)
-        git_commits_reset
+        git_commit_reset
         ;;
     *)
         ! [ -f "$1" ] \
