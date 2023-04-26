@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_usb.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-08-31T18:24:28+0200
+# date:   2023-04-26T08:34:54+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -85,20 +85,22 @@ select_usb() {
     select=$(lsusb \
         | cut -d ':' -f1 \
         | sort -k 2,4\
-        | fzf -m -e -i --preview "printf '%s\n\n' '$device_info' \
-                                    | sed \
-                                        -e '/./{H;$!d;}' \
-                                        -e 'x;/{1} {2} {3} {4}/!d;' \
-                                    | sed '/^$/d'" \
+        | fzf -e --cycle \
+            --preview "printf '%s\n\n' '$device_info' \
+                | sed \
+                    -e '/./{H;$!d;}' \
+                    -e 'x;/{1} {2} {3} {4}/!d;' \
+                | sed '/^$/d'" \
             --preview-window "right:75%,wrap")
 
     [ -n "$select" ] \
         && bind=$(printf "bind\nunbind\nrebind" \
-        | fzf -m -e -i --preview "printf '%s\n\n' '$device_info' \
-                                    | sed \
-                                        -e '/./{H;$!d;}' \
-                                        -e 'x;/$select/!d;' \
-                                    | sed '/^$/d'" \
+        | fzf -e --cycle \
+            --preview "printf '%s\n\n' '$device_info' \
+                | sed \
+                    -e '/./{H;$!d;}' \
+                    -e 'x;/$select/!d;' \
+                | sed '/^$/d'" \
             --preview-window "right:75%,wrap")
 
     [ -n "$bind" ] \

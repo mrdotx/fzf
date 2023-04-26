@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2022-12-31T13:41:24+0100
+# date:   2023-04-26T09:08:02+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -44,8 +44,8 @@ unmount() {
             select=$(findmnt -ro TARGET \
                 | grep "/mnt\|$mount_dir/" \
                 | sort \
-            | fzf -e -i --cycle --preview \
-                    "findmnt -o TARGET,FSTYPE,SOURCE,SIZE,LABEL -T /{1}" \
+            | fzf -e --cycle \
+                --preview "findmnt -o TARGET,FSTYPE,SOURCE,SIZE,LABEL -T /{1}" \
                 --preview-window "right:70%" \
             )
 
@@ -77,8 +77,8 @@ mount_usb() {
                         || $2=="rom"&&$3~"iso"&&$5=="" \
                         || $4=="1,4M"&&$5=="" \
                     {printf "%s\n",$1}' \
-                | fzf -e -i --cycle --preview \
-                        "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
+                | fzf -e --cycle \
+                    --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
                     --preview-window "right:70%" \
             )"
 
@@ -143,10 +143,10 @@ mount_rclone() {
                 | grep -v -e "#" -e "^\s*$" \
                 | cut -d ";" -f1 \
                 | tr -d ' ' \
-                | fzf -e -i --cycle --preview \
-                        "printf \"%s\" \"$rclone_config\" \
-                            | grep {1} \
-                            | sed \"s/^ *//g\"" \
+                | fzf -e --cycle \
+                    --preview "printf \"%s\" \"$rclone_config\" \
+                        | grep {1} \
+                        | sed \"s/^ *//g\"" \
                     --preview-window "right:70%" \
             )
 
@@ -187,9 +187,9 @@ mount_image() {
         *)
             select=$(printf "%s" "$images" \
                 | sed "s#$image_dir/##g" \
-                | fzf -e -i --cycle --preview \
-                        "printf \"%s\" \"$images\" \
-                            | grep {1} " \
+                | fzf -e --cycle \
+                    --preview "printf \"%s\" \"$images\" \
+                        | grep {1} " \
                     --preview-window "right:70%" \
             )
 
@@ -217,8 +217,8 @@ mount_android() {
         *)
             select=$(simple-mtpfs -l 2>/dev/null \
                 | cut -d ":" -f1 \
-                | fzf -e -i --cycle --preview \
-                        "simple-mtpfs --device {1} -l 2>/dev/null" \
+                | fzf -e --cycle \
+                    --preview "simple-mtpfs --device {1} -l 2>/dev/null" \
                     --preview-window "right:70%"
             )
 
@@ -247,8 +247,8 @@ eject_dvd() {
             select="$(lsblk -nrpo "name,type,fstype" \
                 | awk '$2=="rom"&&$3~"iso" \
                     {printf "%s\n",$1}' \
-                | fzf -e -i --cycle --preview \
-                        "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
+                | fzf -e --cycle \
+                    --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
                     --preview-window "right:70%" \
             )"
 
@@ -270,33 +270,34 @@ exit_status() {
 
 # menu
 case $(printf "%s\n" \
-    "unmount" \
-    "usb" \
-    "rclone" \
-    "image" \
-    "android" \
-    "eject" \
-    | fzf -e -i --cycle --preview "case {1} in
-    unmount)
-        printf \"%s\" \"$(unmount preview)\"
-        ;;
-    usb)
-        printf \"%s\" \"$(mount_usb preview)\"
-        ;;
-    rclone)
-        printf \"%s\" \"$(mount_rclone preview)\"
-        ;;
-    image)
-        printf \"%s\" \"$(mount_image preview)\"
-        ;;
-    android)
-        printf \"%s\" \"$(mount_android preview)\"
-        ;;
-    eject)
-        printf \"%s\" \"$(eject_dvd preview)\"
-        ;;
-    esac " \
-        --preview-window "right:70%" \
+        "unmount" \
+        "usb" \
+        "rclone" \
+        "image" \
+        "android" \
+        "eject" \
+    | fzf -e --cycle \
+        --preview "case {1} in
+            unmount)
+                printf \"%s\" \"$(unmount preview)\"
+                ;;
+            usb)
+                printf \"%s\" \"$(mount_usb preview)\"
+                ;;
+            rclone)
+                printf \"%s\" \"$(mount_rclone preview)\"
+                ;;
+            image)
+                printf \"%s\" \"$(mount_image preview)\"
+                ;;
+            android)
+                printf \"%s\" \"$(mount_android preview)\"
+                ;;
+            eject)
+                printf \"%s\" \"$(eject_dvd preview)\"
+                ;;
+            esac " \
+                --preview-window "right:70%" \
     ) in
     "unmount")
         unmount \

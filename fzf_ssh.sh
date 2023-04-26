@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_ssh.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/dmenu
-# date:   2023-04-25T11:49:09+0200
+# date:   2023-04-26T08:43:51+0200
 
 # config
 ssh_config="$HOME/.ssh/config"
@@ -25,18 +25,19 @@ help="$script [-h/--help] -- script to open configured ssh sessions
 while true; do
     # menu
     select=$(printf "%s\n" \
-                "== edit config ==" \
-                "$(grep "^Host " "$ssh_config" \
-                    | cut -d ' ' -f2)" \
-                | fzf -m -e -i --cycle --preview "case {1} in
-                    \"==\"*)
-                        cat \"$ssh_config\"
-                        ;;
-                    *)
-                        sed -n '/^Host {1}$/,/^$/p' \"$ssh_config\"
-                        ;;
-                    esac" \
-                    --preview-window "right:70%" \
+            "$(grep "^Host " "$ssh_config" \
+                | cut -d ' ' -f2)" \
+            "== edit config ==" \
+        | fzf -m -e --cycle \
+            --preview "case {1} in
+                \"==\"*)
+                    cat \"$ssh_config\"
+                    ;;
+                *)
+                    sed -n '/^Host {1}$/,/^$/p' \"$ssh_config\"
+                    ;;
+                esac" \
+            --preview-window "right:70%" \
     )
 
     # select executable

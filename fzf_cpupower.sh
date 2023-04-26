@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-01-07T18:36:37+0100
+# date:   2023-04-26T08:31:21+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -165,7 +165,8 @@ while true; do
             "set max frequency" \
             "edit config" \
             "toggle service" \
-        | fzf -e -i --cycle --preview "case {1} in
+        | fzf -e --cycle \
+            --preview "case {1} in
                 toggle*)
                     printf \"%s\" \"$($auth systemctl status $service)\"
                     ;;
@@ -175,8 +176,8 @@ while true; do
                 set*)
                     printf \"%s\" \"$(get_cpupower_info)\"
                     ;;
-            esac" \
-                --preview-window "right:80%,wrap" \
+                esac" \
+            --preview-window "right:80%,wrap" \
     )
 
     # select executable

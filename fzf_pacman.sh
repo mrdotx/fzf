@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-14T08:24:46+0200
+# date:   2023-04-26T09:00:14+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -86,9 +86,9 @@ pkg_fullpath() {
     done
 }
 
-pacman_downgrade() {
+pacman_change() {
     select=$(pkg_files "$1" \
-        | fzf -m -e -i)
+        | fzf -m -e --cycle)
     [ $? -eq 130 ] \
         && return 130
     [ -n "$select" ] \
@@ -104,9 +104,9 @@ ala_files() {
             -e "s/\">$2.*$//g"
 }
 
-ala_downgrade() {
+ala_change() {
     ala_pkg=$("$aur_helper" -Qq \
-        | fzf -e -i)
+        | fzf -e --cycle)
     [ $? -eq 130 ] \
         && return 130
     [ -z "$ala_pkg" ] \
@@ -119,7 +119,7 @@ ala_downgrade() {
     )
 
     select=$(ala_files "$url" "$ala_pkg" \
-        | fzf -e -i)
+        | fzf -e --cycle)
     [ $? -eq 130 ] \
         && return 130
     [ -n "$select" ] \
@@ -130,7 +130,8 @@ ala_downgrade() {
 aur_execute() {
     select=$( \
         eval $aur_helper -"$1" \
-        | fzf -m -e -i --preview "$aur_helper -$2 {1}" \
+        | fzf -m -e --cycle \
+            --preview "$aur_helper -$2 {1}" \
             --preview-window "right:70%:wrap" \
     )
     [ $? -eq 130 ] \
@@ -168,7 +169,8 @@ while true; do
                 "6.2) mirrorlist" \
                 "6.3) diff packages" \
                 "7) clear cache" \
-        | fzf -e -i --cycle --preview "case {1} in
+        | fzf -e --cycle \
+            --preview "case {1} in
                 7*)
                     printf \":: old packages\n\"
                     \"$auth\" paccache -dvk$pacman_cache_versions
@@ -253,15 +255,15 @@ while true; do
             "$auth" "$edit" "$pacman_config"
             ;;
         5.2*)
-            ala_downgrade "$ala_url"
+            ala_change "$ala_url"
             exit_status
             ;;
         5.1*)
-            pacman_downgrade "$aur_cache"
+            pacman_change "$aur_cache"
             exit_status
             ;;
         5*)
-            pacman_downgrade "$pacman_cache"
+            pacman_change "$pacman_cache"
             exit_status
             ;;
         4.3*)
