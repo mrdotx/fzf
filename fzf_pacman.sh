@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-27T08:58:26+0200
+# date:   2023-04-27T14:23:46+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -66,27 +66,40 @@ log_last_action() {
         | cut -b 2-11
 }
 
-convert_date() {
-    date -d "@$1" "+%d.%m.%Y %H:%M" 2>/dev/null \
-        || printf "unreachable"
-}
-
 get_mirrors() {
     grep "^Server = " "$1" \
         | sed -e "s/^Server = //g" \
             -e "s/\/\$repo.*$//g"
 }
 
-analyze_mirrors() {
-    rankmirrors -n 0 -tv "$1"
+get_mirrors_date() {
+    date -d "@$(curl -fs "$1")" "+%d.%m.%Y_%H:%M" 2>/dev/null \
+        || printf "unreachable     "
+}
 
-    printf "\nlastsync          lastupdate        mirror\n"
+get_mirrors_time() {
+    curl -s -m 5 -w "%{time_total} %{http_code}" -o /dev/null \
+        "$1/core/os/$(uname -m)/core.db.tar.gz"
+}
+
+analyze_mirrors() {
+    header="time     code lastsync         lastupdate       mirror"
+
+    printf "%s\n" "$header"
     for url in $(get_mirrors "$1"); do
-        printf "%s  %s  %s\n" \
-            "$(convert_date "$(curl -fs "$url/lastsync")")" \
-            "$(convert_date "$(curl -fs "$url/lastupdate")")" \
+        output=$(printf "%s  %s %s %s\n" \
+            "$(get_mirrors_time "$url")" \
+            "$(get_mirrors_date "$url/lastsync")" \
+            "$(get_mirrors_date "$url/lastupdate")" \
             "$url"
+        )
+        printf "%s\n" "$output"
+        sorted=$(printf "%s\n%s" "$sorted" "$output")
     done
+
+    printf "\n%s%s\n" "$header" "$sorted" \
+        | sort -n
+    unset sorted
 }
 
 pkg_lists_backup() {
