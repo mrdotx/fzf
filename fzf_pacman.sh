@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-27T07:52:37+0200
+# date:   2023-04-27T08:58:26+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -79,14 +79,12 @@ get_mirrors() {
 
 analyze_mirrors() {
     rankmirrors -n 0 -tv "$1"
+
     printf "\nlastsync          lastupdate        mirror\n"
     for url in $(get_mirrors "$1"); do
-        lastsync=$(curl -fs "$url/lastsync")
-        lastupdate=$(curl -fs "$url/lastupdate")
-
         printf "%s  %s  %s\n" \
-            "$(convert_date "$lastsync")" \
-            "$(convert_date "$lastupdate")" \
+            "$(convert_date "$(curl -fs "$url/lastsync")")" \
+            "$(convert_date "$(curl -fs "$url/lastupdate")")" \
             "$url"
     done
 }
