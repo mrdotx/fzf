@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-26T09:00:14+0200
+# date:   2023-04-27T07:52:37+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -64,6 +64,31 @@ log_last_action() {
     grep "$log_filter" "$pacman_log" \
         | tail -n1 \
         | cut -b 2-11
+}
+
+convert_date() {
+    date -d "@$1" "+%d.%m.%Y %H:%M" 2>/dev/null \
+        || printf "unreachable"
+}
+
+get_mirrors() {
+    grep "^Server = " "$1" \
+        | sed -e "s/^Server = //g" \
+            -e "s/\/\$repo.*$//g"
+}
+
+analyze_mirrors() {
+    rankmirrors -n 0 -tv "$1"
+    printf "\nlastsync          lastupdate        mirror\n"
+    for url in $(get_mirrors "$1"); do
+        lastsync=$(curl -fs "$url/lastsync")
+        lastupdate=$(curl -fs "$url/lastupdate")
+
+        printf "%s  %s  %s\n" \
+            "$(convert_date "$lastsync")" \
+            "$(convert_date "$lastupdate")" \
+            "$url"
+    done
 }
 
 pkg_lists_backup() {
@@ -166,8 +191,9 @@ while true; do
                 "5.2) ala" \
                 "6) config" \
                 "6.1) aur" \
-                "6.2) mirrorlist" \
-                "6.3) diff packages" \
+                "6.2) analyze mirrors" \
+                "6.3) mirrorlist" \
+                "6.4) diff packages" \
                 "7) clear cache" \
         | fzf -e --cycle \
             --preview "case {1} in
@@ -179,12 +205,14 @@ while true; do
                     printf \":: orphan packages\n\"
                     \"$aur_helper\" -Qdtq
                     ;;
-                6.3*)
+                6.4*)
                     \"$auth\" pacdiff -f -o
                     ;;
+                6.3*)
+                    printf \"%s\" \"$(sed "s/\/\$repo.*$//g" "$pacman_mirrors")\"
+                    ;;
                 6.2*)
-                    rankmirrors -n 0 -t \"$pacman_mirrors\"
-                    printf \"\n%s\" \"$(cat "$pacman_mirrors")\"
+                    printf \"%s\" \"$(get_mirrors "$pacman_mirrors")\"
                     ;;
                 6.1*)
                     cat \"$aur_config\"
@@ -242,11 +270,15 @@ while true; do
             "$auth" paccache -rvuk0
             "$aur_helper" -c
             ;;
-        6.3*)
+        6.4*)
             "$auth" pacdiff -f
             ;;
-        6.2*)
+        6.3*)
             "$auth" "$edit" "$pacman_mirrors"
+            ;;
+        6.2*)
+            analyze_mirrors "$pacman_mirrors"
+            exit_status
             ;;
         6.1*)
             "$edit" "$aur_config"
