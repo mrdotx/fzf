@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-29T10:38:32+0200
+# date:   2023-04-29T17:57:52+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -129,7 +129,7 @@ get_frequency_info() {
 set_governor() {
     [ -n "$1" ] \
         && "$auth" cpupower frequency-set --governor \
-            "$(printf "%s" "$1" | cut -d' ' -f2)"
+            "$(printf "%s" "$1" | cut -d' ' -f3)"
 }
 
 set_frequency() {
@@ -159,41 +159,35 @@ toggle_cpupower_service() {
 while true; do
     # menu
     select=$(printf "%s\n" \
-            "$(for value in $(cpupower_wrapper --governors); do
-                printf "set %s\n" "$value"
-            done)" \
             "set frequency" \
             "set frequency min" \
             "set frequency max" \
+            "$(for value in $(cpupower_wrapper --governors); do
+                printf "set governor %s\n" "$value"
+            done)" \
             "toggle service" \
             "edit config" \
         | fzf -e --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%,wrap" \
             --preview "case {} in
-                \"edit config\")
-                    cat \"$config\"
+                \"set frequency\"*)
+                    printf \"%s\" \"$(get_frequency_info)\"
+                    ;;
+                \"set governor\"*)
+                    printf \"%s\" \"$(get_governor_info)\"
                     ;;
                 \"toggle service\")
                     printf \"%s\" \"$($auth systemctl status $service)\"
                     ;;
-                \"set frequency\"*)
-                    printf \"%s\" \"$(get_frequency_info)\"
-                    ;;
-                \"set\"*)
-                    printf \"%s\" \"$(get_governor_info)\"
+                \"edit config\")
+                    cat \"$config\"
                     ;;
                 esac" \
     )
 
     # select executable
     case "$select" in
-        "edit config")
-            "$auth" "$edit" "$config"
-            ;;
-        "toggle service")
-            toggle_cpupower_service
-            ;;
         "set frequency")
             set_frequency "$select" "-f" \
                 || exit_status
@@ -206,9 +200,15 @@ while true; do
             set_frequency "$select" "-u" \
                 || exit_status
             ;;
-        "set"*)
+        "set governor"*)
             set_governor "$select" \
                 || exit_status
+            ;;
+        "toggle service")
+            toggle_cpupower_service
+            ;;
+        "edit config")
+            "$auth" "$edit" "$config"
             ;;
         *)
             break

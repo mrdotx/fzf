@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-29T11:42:27+0200
+# date:   2023-04-29T17:56:11+0200
 
 # help
 script=$(basename "$0")
@@ -63,6 +63,9 @@ while true; do
 
     # select executables
     case "$select" in
+        "restore from trash")
+            trash-restore
+            ;;
         "put to trash")
             trash_put
             ;;
@@ -71,9 +74,6 @@ while true; do
             ;;
         "empty trash")
             trash-empty
-            ;;
-        "restore from trash")
-            trash-restore
             ;;
         *)
             break
