@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-29T10:46:04+0200
+# date:   2023-04-29T12:34:05+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -60,7 +60,7 @@ help="$script [-h/--help] -- script to manage packages with pacman and $aur_help
 
 # helper functions
 log_filter=".*\[ALPM\].*(.*)"
-log_last_action() {
+log_latest_activities() {
     grep "$log_filter" "$pacman_log" \
         | tail -n1 \
         | cut -b 2-11
@@ -271,9 +271,9 @@ while true; do
                     \"$aur_helper\" -Qua
                     ;;
                 \"view pacman.log\")
-                    printf \":: today's activities\n\"
+                    printf \":: latest activities\n\"
                     grep \"$log_filter\" \"$pacman_log\" \
-                        | grep \"$(log_last_action)\" \
+                        | grep \"$(log_latest_activities)\" \
                         | cut -d ' ' -f3- \
                         | tac
                     ;;
