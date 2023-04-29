@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-26T08:40:39+0200
+# date:   2023-04-29T11:42:27+0200
 
 # help
 script=$(basename "$0")
@@ -18,6 +18,36 @@ help="$script [-h/--help] -- script to manage files/folders with trash-cli
     && printf "%s\n" "$help" \
     && exit 0
 
+trash_remove() {
+    trash-list \
+        | cut -d ' ' -f3- \
+        | LC_COLLATE=C sort -u \
+        | fzf -m -e --cycle \
+            --preview-window "up:75%:wrap" \
+            --preview "trash-list | grep {}$" \
+        | {
+            while IFS= read -r entry; do
+                trash-rm "$entry"
+            done
+        }
+}
+
+trash_put() {
+    find . -maxdepth 1 \
+        | sed 1d \
+        | cut -b3- \
+        | LC_COLLATE=C sort \
+        | fzf -m -e --cycle \
+            --bind 'focus:transform-preview-label:echo [ {} ]' \
+            --preview-window "right:75%" \
+            --preview "highlight {}" \
+        | {
+            while IFS= read -r entry; do
+                trash-put "$(pwd)/$entry"
+            done
+        }
+}
+
 while true; do
     # menu
     select=$(printf "%s\n" \
@@ -26,51 +56,23 @@ while true; do
                 "remove from trash" \
                 "empty trash" \
         | fzf -e --cycle \
-            --preview "trash-list" \
+            --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%:wrap" \
+            --preview "trash-list" \
     )
-
-    # remove selected files/folders from trash
-    trash_remove() {
-        objects=$(trash-list | cut -d ' ' -f3 \
-            | fzf -m -e --cycle \
-                --preview "trash-list | grep {1}$" \
-                --preview-window "right:75%:wrap" \
-        )
-
-        for entry in $objects; do
-            trash-rm "$entry"
-        done
-    }
-
-    # put to trash
-    trash_put() {
-        objects=$(find . -maxdepth 1 \
-                | sed 1d \
-                | cut -b3- \
-                | sort \
-                | fzf -m -e --cycle \
-                    --preview "highlight {1}" \
-                    --preview-window "right:75%" \
-        )
-
-        for entry in $objects; do
-            trash-put "$(pwd)/$entry"
-        done
-    }
 
     # select executables
     case "$select" in
-        put*)
+        "put to trash")
             trash_put
             ;;
-        remove*)
+        "remove from trash")
             trash_remove
             ;;
-        empty*)
+        "empty trash")
             trash-empty
             ;;
-        restore*)
+        "restore from trash")
             trash-restore
             ;;
         *)
