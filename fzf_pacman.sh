@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-27T14:39:39+0200
+# date:   2023-04-29T10:46:04+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -122,13 +122,13 @@ pkg_fullpath() {
     done
 }
 
-pacman_change() {
+aur_helper_downgrade() {
     select=$(pkg_files "$1" \
         | fzf -m -e --cycle)
     [ $? -eq 130 ] \
         && return 130
     [ -n "$select" ] \
-        && select="$auth pacman -U $(pkg_fullpath "$1" "$select")" \
+        && select="$auth $aur_helper -U $(pkg_fullpath "$1" "$select")" \
         && $select
 }
 
@@ -140,7 +140,7 @@ ala_files() {
             -e "s/\">$2.*$//g"
 }
 
-ala_change() {
+ala_downgrade() {
     ala_pkg=$("$aur_helper" -Qq \
         | fzf -e --cycle)
     [ $? -eq 130 ] \
@@ -159,7 +159,7 @@ ala_change() {
     [ $? -eq 130 ] \
         && return 130
     [ -n "$select" ] \
-        && select="$auth pacman -U $url$select" \
+        && select="$auth $aur_helper -U $url$select" \
         && $select
 }
 
@@ -167,8 +167,8 @@ aur_execute() {
     select=$( \
         eval $aur_helper -"$1" \
         | fzf -m -e --cycle \
+            --preview-window "up:75%:wrap" \
             --preview "$aur_helper -$2 {1}" \
-            --preview-window "right:70%:wrap" \
     )
     [ $? -eq 130 ] \
         && return 130
@@ -188,27 +188,29 @@ exit_status() {
 while true; do
     # menu
     select=$(printf "%s\n" \
-                "1) view pacman.log" \
-                "2) system upgrade" \
-                "3) install packages" \
-                "3.1) pacman" \
-                "3.2) aur" \
-                "4) remove packages" \
-                "4.1) aur" \
-                "4.2) explicit installed" \
-                "4.3) without dependencies" \
-                "5) change packages" \
-                "5.1) aur" \
-                "5.2) ala" \
-                "6) config" \
-                "6.1) aur" \
-                "6.2) analyze mirrors" \
-                "6.3) mirrorlist" \
-                "6.4) diff packages" \
-                "7) clear cache" \
+                "view pacman.log" \
+                "system upgrade" \
+                "install packages" \
+                "install arch packages" \
+                "install aur packages" \
+                "remove arch packages" \
+                "remove aur packages" \
+                "remove explicit installed packages" \
+                "remove packages without dependencies" \
+                "downgrade arch packages" \
+                "downgrade aur packages" \
+                "downgrade ala packages" \
+                "edit pacman config" \
+                "edit $aur_helper config" \
+                "edit pacman mirrorlist" \
+                "analyze pacman mirrors" \
+                "diff package config" \
+                "clear package cache" \
         | fzf -e --cycle \
-            --preview "case {1} in
-                7*)
+            --bind 'focus:transform-preview-label:echo [ {} ]' \
+            --preview-window "right:75%" \
+            --preview "case {} in
+                \"clear package cache\")
                     printf \":: old packages\n\"
                     \"$auth\" paccache -dvk$pacman_cache_versions
                     printf \":: uninstalled packages\n\"
@@ -216,132 +218,136 @@ while true; do
                     printf \":: orphan packages\n\"
                     \"$aur_helper\" -Qdtq
                     ;;
-                6.4*)
+                \"diff package config\")
+                    printf \":: pacorig, pacnew and pacsav files\n\"
                     \"$auth\" pacdiff -f -o
                     ;;
-                6.3*)
-                    printf \"%s\" \"$(sed "s/\/\$repo.*$//g" "$pacman_mirrors")\"
-                    ;;
-                6.2*)
+                \"analyze pacman mirrors\")
+                    printf \":: currently used mirrors\n\"
                     printf \"%s\" \"$(get_mirrors "$pacman_mirrors")\"
                     ;;
-                6.1*)
+                \"edit pacman mirrorlist\")
+                    printf \"%s\" \"$(sed "s/\/\$repo.*$//g" "$pacman_mirrors")\"
+                    ;;
+                \"edit $aur_helper config\")
                     cat \"$aur_config\"
                     ;;
-                6*)
+                \"edit pacman config\")
                     cat \"$pacman_config\"
                     ;;
-                5.2*)
+                \"downgrade ala packages\")
                     \"$aur_helper\" -Qq
                     ;;
-                5.1*)
+                \"downgrade aur packages\")
                     printf \"%s\" \"$(pkg_files "$aur_cache")\"
                     ;;
-                5*)
+                \"downgrade arch packages\")
                     printf \"%s\" \"$(pkg_files "$pacman_cache")\"
                     ;;
-                4.3*)
+                \"remove packages without dependencies\")
                     \"$aur_helper\" -Qqt
                     ;;
-                4.2*)
+                \"remove explicit installed packages\")
                     \"$aur_helper\" -Qqe
                     ;;
-                4.1*)
+                \"remove aur packages\")
                     \"$aur_helper\" -Qmq
                     ;;
-                4*)
+                \"remove arch packages\")
                     \"$aur_helper\" -Qq
                     ;;
-                3.2*)
+                \"install aur packages\")
                     \"$aur_helper\" -Slq --aur
                     ;;
-                3.1*)
+                \"install arch packages\")
                     \"$aur_helper\" -Slq --repo
                     ;;
-                3*)
+                \"install packages\")
                     \"$aur_helper\" -Slq
                     ;;
-                2*)
+                \"system upgrade\")
+                    printf \":: packages to update\n\"
                     checkupdates
                     \"$aur_helper\" -Qua
                     ;;
-                1*)
+                \"view pacman.log\")
+                    printf \":: today's activities\n\"
                     grep \"$log_filter\" \"$pacman_log\" \
                         | grep \"$(log_last_action)\" \
+                        | cut -d ' ' -f3- \
                         | tac
                     ;;
             esac" \
-                --preview-window "right:70%" \
     )
 
     # select executable
     case "$select" in
-        7*)
+        "clear package cache")
             "$auth" paccache -rvk$pacman_cache_versions
             "$auth" paccache -rvuk0
             "$aur_helper" -c
             ;;
-        6.4*)
+        "diff package config")
             "$auth" pacdiff -f
             ;;
-        6.3*)
-            "$auth" "$edit" "$pacman_mirrors"
-            ;;
-        6.2*)
+        "analyze pacman mirrors")
             analyze_mirrors "$pacman_mirrors"
             exit_status
             ;;
-        6.1*)
+        "edit pacman mirrorlist")
+            "$auth" "$edit" "$pacman_mirrors"
+            ;;
+        "edit $aur_helper config")
             "$edit" "$aur_config"
             ;;
-        6*)
+        "edit pacman config")
             "$auth" "$edit" "$pacman_config"
             ;;
-        5.2*)
-            ala_change "$ala_url"
+        "downgrade ala packages")
+            ala_downgrade "$ala_url"
             exit_status
             ;;
-        5.1*)
-            pacman_change "$aur_cache"
+        "downgrade aur packages")
+            aur_helper_downgrade "$aur_cache"
             exit_status
             ;;
-        5*)
-            pacman_change "$pacman_cache"
+        "downgrade arch packages")
+            aur_helper_downgrade "$pacman_cache"
             exit_status
             ;;
-        4.3*)
+        "remove packages without dependencies")
             aur_execute "Qqt" "Qlii" "Rsn"
             exit_status
             ;;
-        4.2*)
+        "remove explicit installed packages")
             aur_execute "Qqe" "Qlii" "Rsn"
             exit_status
             ;;
-        4.1*)
+        "remove aur packages")
             aur_execute "Qmq" "Qlii" "Rsn"
             exit_status
             ;;
-        4*)
+        "remove arch packages")
             aur_execute "Qq" "Qlii" "Rsn"
             exit_status
             ;;
-        3.2*)
+        "install aur packages")
             aur_execute "Slq --aur" "Sii" "S"
             exit_status
             ;;
-        3.1*)
+        "install arch packages")
             aur_execute "Slq --repo" "Sii" "S"
             exit_status
             ;;
-        3*)
+        "install packages")
             aur_execute "Slq" "Sii" "S"
             exit_status
             ;;
-        2*)
+        "system upgrade")
             "$aur_helper" -Syu
             exit_status
             ;;
-        1*)
+        "view pacman.log")
             tac "$pacman_log" | "$display"
             ;;
         *)
