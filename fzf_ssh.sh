@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_ssh.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/dmenu
-# date:   2023-04-26T08:43:51+0200
+# date:   2023-04-28T19:08:57+0200
 
 # config
 ssh_config="$HOME/.ssh/config"
@@ -27,22 +27,23 @@ while true; do
     select=$(printf "%s\n" \
             "$(grep "^Host " "$ssh_config" \
                 | cut -d ' ' -f2)" \
-            "== edit config ==" \
+            "edit config" \
         | fzf -m -e --cycle \
-            --preview "case {1} in
-                \"==\"*)
+            --bind 'focus:transform-preview-label:echo [ {} ]' \
+            --preview-window "right:75%" \
+            --preview "case {} in
+                \"edit config\")
                     cat \"$ssh_config\"
                     ;;
                 *)
                     sed -n '/^Host {1}$/,/^$/p' \"$ssh_config\"
                     ;;
                 esac" \
-            --preview-window "right:70%" \
     )
 
     # select executable
     case "$select" in
-        "== edit config ==")
+        "edit config")
             "$edit" "$ssh_config"
             ;;
         *)
