@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-29T12:34:05+0200
+# date:   2023-04-29T16:56:22+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -193,10 +193,10 @@ while true; do
                 "install packages" \
                 "install arch packages" \
                 "install aur packages" \
-                "remove arch packages" \
-                "remove aur packages" \
+                "remove packages" \
                 "remove explicit installed packages" \
                 "remove packages without dependencies" \
+                "remove aur packages" \
                 "downgrade arch packages" \
                 "downgrade aur packages" \
                 "downgrade ala packages" \
@@ -244,16 +244,16 @@ while true; do
                 \"downgrade arch packages\")
                     printf \"%s\" \"$(pkg_files "$pacman_cache")\"
                     ;;
+                \"remove aur packages\")
+                    \"$aur_helper\" -Qmq
+                    ;;
                 \"remove packages without dependencies\")
                     \"$aur_helper\" -Qqt
                     ;;
                 \"remove explicit installed packages\")
                     \"$aur_helper\" -Qqe
                     ;;
-                \"remove aur packages\")
-                    \"$aur_helper\" -Qmq
-                    ;;
-                \"remove arch packages\")
+                \"remove packages\")
                     \"$aur_helper\" -Qq
                     ;;
                 \"install aur packages\")
@@ -315,6 +315,10 @@ while true; do
             aur_helper_downgrade "$pacman_cache"
             exit_status
             ;;
+        "remove aur packages")
+            aur_execute "Qmq" "Qlii" "Rsn"
+            exit_status
+            ;;
         "remove packages without dependencies")
             aur_execute "Qqt" "Qlii" "Rsn"
             exit_status
@@ -323,11 +327,7 @@ while true; do
             aur_execute "Qqe" "Qlii" "Rsn"
             exit_status
             ;;
-        "remove aur packages")
-            aur_execute "Qmq" "Qlii" "Rsn"
-            exit_status
-            ;;
-        "remove arch packages")
+        "remove packages")
             aur_execute "Qq" "Qlii" "Rsn"
             exit_status
             ;;
