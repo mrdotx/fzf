@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-26T08:31:21+0200
+# date:   2023-04-29T10:38:32+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -75,7 +75,7 @@ cpupower_wrapper() {
     esac
 }
 
-get_cpupower_info() {
+get_governor_info() {
     governor=$(cat "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor")
 
     printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n" \
@@ -95,33 +95,35 @@ get_cpupower_info() {
     printf "== currently used cpufreq policy ==\n%s\n\n" \
         "$(cpupower_wrapper --policy)" \
             | sed "s/\"$governor\"/$(highlight_string "$governor")/"
+}
+
+get_frequency_info() {
+    printf "== current cpu frequency ==\n%s\n\n" \
+        "$(cpupower_wrapper --freq --human)"
 
     printf "== maximum cpu frequency ==\n%s\n\n" \
         "$(cpupower_wrapper --hwlimits --human)"
 
-    printf "== current cpu frequency ==\n%s\n\n" \
-        "$(cpupower_wrapper --freq --human)"
-
     printf "== cpu frequency statistics ==\n%s\n\n" \
         "$(cpupower_wrapper --stats --human)"
-
-    printf "== maximum latency on cpu frequency changes ==\n%s\n\n" \
-        "$(cpupower_wrapper --latency --human)"
 
     printf "== boost state support ==\n%s\n\n" \
         "$(cpupower_wrapper --boost)"
 
+    printf "== maximum latency on cpu frequency changes ==\n%s\n\n" \
+        "$(cpupower_wrapper --latency --human)"
+
     printf "== performances and frequencies capabilities of cppc ==\n%s\n\n" \
         "$(cpupower_wrapper --perf)"
+
+    printf "== used cpu kernel driver ==\n%s\n\n" \
+        "$(cpupower_wrapper --driver)"
 
     printf "== cpus run at the same hardware frequency ==\n%s\n\n" \
         "$(cpupower_wrapper --related-cpus)"
 
     printf "== cpus need to have their frequency coordinated by software ==\n%s\n\n" \
         "$(cpupower_wrapper --affected-cpus)"
-
-    printf "== used cpu kernel driver ==\n%s\n\n" \
-        "$(cpupower_wrapper --driver)"
 }
 
 set_governor() {
@@ -161,48 +163,52 @@ while true; do
                 printf "set %s\n" "$value"
             done)" \
             "set frequency" \
-            "set min frequency" \
-            "set max frequency" \
-            "edit config" \
+            "set frequency min" \
+            "set frequency max" \
             "toggle service" \
+            "edit config" \
         | fzf -e --cycle \
-            --preview "case {1} in
-                toggle*)
-                    printf \"%s\" \"$($auth systemctl status $service)\"
-                    ;;
-                edit*)
+            --bind 'focus:transform-preview-label:echo [ {} ]' \
+            --preview-window "right:75%,wrap" \
+            --preview "case {} in
+                \"edit config\")
                     cat \"$config\"
                     ;;
-                set*)
-                    printf \"%s\" \"$(get_cpupower_info)\"
+                \"toggle service\")
+                    printf \"%s\" \"$($auth systemctl status $service)\"
+                    ;;
+                \"set frequency\"*)
+                    printf \"%s\" \"$(get_frequency_info)\"
+                    ;;
+                \"set\"*)
+                    printf \"%s\" \"$(get_governor_info)\"
                     ;;
                 esac" \
-            --preview-window "right:80%,wrap" \
     )
 
     # select executable
     case "$select" in
-        set*max*frequency)
-            set_frequency "$select" "-u" \
-                || exit_status
+        "edit config")
+            "$auth" "$edit" "$config"
             ;;
-        set*min*frequency)
-            set_frequency "$select" "-d" \
-                || exit_status
+        "toggle service")
+            toggle_cpupower_service
             ;;
-        set*frequency)
+        "set frequency")
             set_frequency "$select" "-f" \
                 || exit_status
             ;;
-        set*)
-            set_governor "$select" \
+        "set frequency min")
+            set_frequency "$select" "-d" \
                 || exit_status
             ;;
-        edit*)
-            "$auth" "$edit" "$config"
+        "set frequency max")
+            set_frequency "$select" "-u" \
+                || exit_status
             ;;
-        toggle*)
-            toggle_cpupower_service
+        "set"*)
+            set_governor "$select" \
+                || exit_status
             ;;
         *)
             break
