@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_git_commit.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-26T08:29:15+0200
+# date:   2023-04-28T19:22:08+0200
 
 # help
 script=$(basename "$0")
@@ -27,17 +27,16 @@ git_log() {
     c3="%C(brightmagenta)"
     c4="%C(brightcyan)"
     cr="%C(reset)"
-    pretty="$c1%h $c2%cs $c3%G? $c4%an:$cr %s"
 
-    git log --pretty="$pretty" "$@"
+    git log --pretty="$c1%h $c2%cs $c3%G? $c4%an:$cr %s" "$@"
 }
 
 git_commit() {
     for entry in "$@"; do
         commit_id=$(git_log "$entry" \
             | fzf -e +s --cycle \
-                --preview "git show --color $(printf "{1}")" \
                 --preview-window "up:75%" \
+                --preview "git show --color $(printf "{1}")" \
             | cut -d" " -f1)
 
         [ -n "$commit_id" ] \
