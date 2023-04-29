@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_alsa.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-26T08:30:01+0200
+# date:   2023-04-29T11:56:32+0200
 
 # use standard c to identify the playback device
 LC_ALL=C
@@ -60,11 +60,12 @@ select=$(aplay -l \
     | cut -d'[' -f3 \
     | tr -d ']' \
     | fzf -e --cycle \
+        --bind 'focus:transform-preview-label:echo [ {} ]' \
+        --preview-window "right:75%,wrap" \
         --preview "printf '%s\n\n**** %s ****\n%s' \
             \"$(aplay -l)\" \
             \"$config_file\" \
             \"$(cat "$config_path/$config_file")\"" \
-        --preview-window "right:70%,wrap" \
 )
 
 [ -n "$select" ] \
