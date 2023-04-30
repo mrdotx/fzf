@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-29T18:08:10+0200
+# date:   2023-04-30T11:49:24+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -73,33 +73,52 @@ get_mirrors() {
 }
 
 get_mirrors_date() {
-    date -d "@$(curl -fs "$1")" "+%d.%m.%Y_%H:%M" 2>/dev/null \
-        || printf "unreachable     "
+    date -d "@$(curl -L -fs -m 3.33 "$1")" "+%d.%m.%Y-%H:%M" 2>/dev/null \
+        || printf "     unreachable"
 }
 
-get_mirrors_time() {
-    curl -s -m 5 -w "%{time_total} %{http_code}" -o /dev/null \
-        "$1/core/os/$(uname -m)/core.db.tar.gz"
+get_mirrors_data() {
+    output=$(curl -L -s -m 9.99 -w "%{time_total} %{http_code}" -o /dev/null \
+        "$1/core/os/$(uname -m)/core.db.tar.gz")
+    [ $? -eq 28 ] \
+        && printf " timeout          timeout          timeout" \
+        && return
+
+    code=$(printf "%s\n" "$output" \
+        | cut -d ' ' -f2)
+    [ "$code" -eq 000 ] \
+        && printf " unknown      unreachable      unreachable" \
+        && return
+    [ "$code" -ne 200 ] \
+        && printf "http %s      unreachable      unreachable" "$code" \
+        && return
+
+    printf "%s %s %s\n" \
+        "$(printf "%s\n" "$output" | cut -d ' ' -f1)" \
+        "$(get_mirrors_date "$url/lastsync")" \
+        "$(get_mirrors_date "$url/lastupdate")"
 }
 
 analyze_mirrors() {
-    header="time     code synchronized     updated          mirror"
+    header="    time     synchronized          updated order mirror"
 
     printf "%s\n" "$header"
     for url in $(get_mirrors "$1"); do
-        output=$(printf "%s  %s %s %s\n" \
-            "$(get_mirrors_time "$url")" \
-            "$(get_mirrors_date "$url/lastsync")" \
-            "$(get_mirrors_date "$url/lastupdate")" \
+        order=$((order+1))
+        output=$(printf "%s %05s %s\n" \
+            "$(get_mirrors_data "$url")" \
+            "$order" \
             "$url"
         )
         printf "%s\n" "$output"
         sorted=$(printf "%s\n%s" "$sorted" "$output")
     done
 
-    printf "\n%s%s\n" "$header" "$sorted" \
-        | sort -n
-    unset sorted
+    printf "\n%s" "$header"
+    printf "%s\n" "$sorted" \
+        | LC_COLLATE=C sort -b
+
+    unset order sorted
 }
 
 pkg_lists_backup() {
