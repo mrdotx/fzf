@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-30T11:49:24+0200
+# date:   2023-05-01T10:41:18+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -73,41 +73,67 @@ get_mirrors() {
 }
 
 get_mirrors_date() {
-    date -d "@$(curl -L -fs -m 3.33 "$1")" "+%d.%m.%Y-%H:%M" 2>/dev/null \
-        || printf "     unreachable"
+    date -d "@$(curl -L -fs -m 3.33 "$1")" "+%d.%m.%y-%H:%M" 2>/dev/null \
+        || printf "unreachable   "
 }
 
 get_mirrors_data() {
     output=$(curl -L -s -m 9.99 -w "%{time_total} %{http_code}" -o /dev/null \
-        "$1/core/os/$(uname -m)/core.db.tar.gz")
+        "$1/core/os/$(uname -m)/core.db.tar.gz" \
+    )
     [ $? -eq 28 ] \
-        && printf " timeout          timeout          timeout" \
+        && printf "                       timeout       " \
         && return
 
     code=$(printf "%s\n" "$output" \
         | cut -d ' ' -f2)
     [ "$code" -eq 000 ] \
-        && printf " unknown      unreachable      unreachable" \
+        && printf "                       unknown       " \
         && return
     [ "$code" -ne 200 ] \
-        && printf "http %s      unreachable      unreachable" "$code" \
+        && printf "                       http error %s" "$code" \
         && return
 
-    printf "%s %s %s\n" \
+    printf "%.5f %s %s\n" \
         "$(printf "%s\n" "$output" | cut -d ' ' -f1)" \
         "$(get_mirrors_date "$url/lastsync")" \
         "$(get_mirrors_date "$url/lastupdate")"
 }
 
+get_mirror_status() {
+    tag="$1"
+    url="$2"
+    shift 2
+
+    output=$(printf "%s\n" "$*" \
+        | awk -F "\"$url" '{print $2}' \
+        | awk -F "\"$tag\": " '{print $2}' \
+        | cut -d ',' -f1)
+
+    { [ -z "$output" ] || [ "$output" = "null" ] ;} \
+        && printf "n/a\n" \
+        && return
+
+    [ "$(printf "%.0f" "$output")" -gt 999 ] \
+        && printf "bad\n" \
+        && return
+
+    printf "%.1f\n" "$output"
+}
+
 analyze_mirrors() {
-    header="    time     synchronized          updated order mirror"
+    status_data=$(curl -L -fsS -m 9.99 -H "Accept: application/json" \
+        "https://archlinux.org/mirrors/status/json" \
+    )
+    header="time    synchronized   updated        order score mirror"
 
     printf "%s\n" "$header"
     for url in $(get_mirrors "$1"); do
         order=$((order+1))
-        output=$(printf "%s %05s %s\n" \
+        output=$(printf "%s %05s %05s %s\n" \
             "$(get_mirrors_data "$url")" \
             "$order" \
+            "$(get_mirror_status "score" "$url" "$status_data")" \
             "$url"
         )
         printf "%s\n" "$output"
