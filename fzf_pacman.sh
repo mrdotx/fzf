@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-01T10:41:18+0200
+# date:   2023-05-01T11:28:40+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -173,7 +173,7 @@ aur_helper_downgrade() {
     [ $? -eq 130 ] \
         && return 130
     [ -n "$select" ] \
-        && select="$auth $aur_helper -U $(pkg_fullpath "$1" "$select")" \
+        && select="$aur_helper -U $(pkg_fullpath "$1" "$select")" \
         && $select
 }
 
@@ -204,7 +204,7 @@ ala_downgrade() {
     [ $? -eq 130 ] \
         && return 130
     [ -n "$select" ] \
-        && select="$auth $aur_helper -U $url$select" \
+        && select="$aur_helper -U $url$select" \
         && $select
 }
 
