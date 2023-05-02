@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_man.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-28T19:22:18+0200
+# date:   2023-05-02T05:51:05+0200
 
 # help
 script=$(basename "$0")
@@ -20,7 +20,7 @@ help="$script [-h/--help] -- script to search and open man pages
 
 select=$(man -k -l '' \
     | sort \
-    | fzf -e --cycle --query=^ \
+    | fzf -e --query=^ \
         --preview-window "up:75%" \
         --preview "man {1}{2}" \
     | cut -d ' ' -f1,2 \

@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-01T20:00:35+0200
+# date:   2023-05-02T05:54:21+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -169,7 +169,7 @@ pkg_fullpath() {
 
 aur_helper_downgrade() {
     select=$(pkg_files "$1" \
-        | fzf -m -e --cycle)
+        | fzf -m -e)
     [ $? -eq 130 ] \
         && return 130
     [ -n "$select" ] \
@@ -187,7 +187,7 @@ ala_files() {
 
 ala_downgrade() {
     ala_pkg=$("$aur_helper" -Qq \
-        | fzf -e --cycle)
+        | fzf -e)
     [ $? -eq 130 ] \
         && return 130
     [ -z "$ala_pkg" ] \
@@ -200,7 +200,7 @@ ala_downgrade() {
     )
 
     select=$(ala_files "$url" "$ala_pkg" \
-        | fzf -e --cycle)
+        | fzf -e)
     [ $? -eq 130 ] \
         && return 130
     [ -n "$select" ] \
@@ -211,7 +211,7 @@ ala_downgrade() {
 aur_execute() {
     select=$( \
         eval $aur_helper -"$1" \
-        | fzf -m -e --cycle \
+        | fzf -m -e \
             --preview-window "up:75%:wrap" \
             --preview "$aur_helper -$2 {1}" \
     )

@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-29T17:56:11+0200
+# date:   2023-05-02T05:56:45+0200
 
 # help
 script=$(basename "$0")
@@ -22,7 +22,7 @@ trash_remove() {
     trash-list \
         | cut -d ' ' -f3- \
         | LC_COLLATE=C sort -u \
-        | fzf -m -e --cycle \
+        | fzf -m -e \
             --preview-window "up:75%:wrap" \
             --preview "trash-list | grep {}$" \
         | {
@@ -37,7 +37,7 @@ trash_put() {
         | sed 1d \
         | cut -b3- \
         | LC_COLLATE=C sort \
-        | fzf -m -e --cycle \
+        | fzf -m -e \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%" \
             --preview "highlight {}" \
