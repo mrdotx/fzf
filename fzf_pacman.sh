@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-01T11:28:40+0200
+# date:   2023-05-01T20:00:35+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -114,11 +114,11 @@ get_mirror_status() {
         && printf "n/a\n" \
         && return
 
-    [ "$(printf "%.0f" "$output")" -gt 999 ] \
+    [ "$(printf "%.0f" "$output")" -gt 99 ] \
         && printf "bad\n" \
         && return
 
-    printf "%.1f\n" "$output"
+    printf "%.2f\n" "$output"
 }
 
 analyze_mirrors() {
