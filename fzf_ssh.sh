@@ -2,8 +2,8 @@
 
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_ssh.sh
 # author: klassiker [mrdotx]
-# github: https://github.com/mrdotx/dmenu
-# date:   2023-04-28T19:08:57+0200
+# github: https://github.com/mrdotx/fzf
+# date:   2023-05-02T05:55:50+0200
 
 # config
 ssh_config="$HOME/.ssh/config"
