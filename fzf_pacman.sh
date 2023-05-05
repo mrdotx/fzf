@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-02T05:54:21+0200
+# date:   2023-05-05T13:09:57+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -19,7 +19,7 @@ aur_cache="$HOME/.cache/paru/clone"
 ala_url="https://archive.archlinux.org/packages"
 pacman_log="/var/log/pacman.log"
 pacman_cache="/var/cache/pacman/pkg"
-pacman_cache_versions=2
+pacman_cache_versions=1
 pacman_config="/etc/pacman.conf"
 pacman_mirrors="/etc/pacman.d/mirrorlist"
 backup_all="$aur_folder/pkgs_all.txt"
