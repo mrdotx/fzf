@@ -18,3 +18,7 @@ config files:
 
 - [dotfiles/i3](https://github.com/mrdotx/dotfiles/tree/master/.config/i3)
 - [dotfiles/ranger](https://github.com/mrdotx/dotfiles/tree/master/.config/ranger)
+
+related projects:
+
+- [dmenu](https://github.com/mrdotx/dmenu)
