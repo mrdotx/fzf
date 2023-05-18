@@ -13,6 +13,7 @@ shell scripts for fzf
 | fzf_ssh.sh        | open configured ssh sessions                                      |
 | fzf_trash.sh      | manage files/folders with trash-cli                               |
 | fzf_usb.sh        | manage usb devices                                                |
+| fzf_virtualbox.sh | start a virtual machine without virtualbox frontend               |
 
 config files:
 
