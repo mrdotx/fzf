@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_iwd.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-20T17:41:19+0200
+# date:   2023-05-20T18:12:37+0200
 
 remove_escape_sequences() {
     tail -n +5 \
@@ -26,7 +26,7 @@ read_secret() {
 connect_ssid() {
     case "$1" in
         open)
-            printf "try to connect to \"%s\"" "$ssid"
+            printf "try to connect to \"%s\"\n" "$ssid"
             iwctl station "$device" connect "$ssid"
             ;;
         *)
@@ -42,7 +42,7 @@ connect_ssid() {
                         read_secret -r psk
                         ;;
                 esac
-            printf "try to connect to \"%s\" with psk" "$ssid"
+            printf "try to connect to \"%s\" with psk\n" "$ssid"
             iwctl station "$device" connect "$ssid" -P "$psk"
             ;;
     esac
