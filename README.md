@@ -7,6 +7,7 @@ shell scripts for fzf
 | fzf_alsa.sh       | set the default alsa playback device via asoundrc config file     |
 | fzf_cpupower.sh   | manage cpupower                                                   |
 | fzf_git_commit.sh | show/checkout commits for files or reset commits for a repository |
+| fzf_iwd.sh        | connect to wlan with iwd                                          |
 | fzf_man.sh        | search and open man pages                                         |
 | fzf_mount.sh      | un-/mount remote, usb and android locations/devices               |
 | fzf_pacman.sh     | manage packages with pacman and paru                              |
