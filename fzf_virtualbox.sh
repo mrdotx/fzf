@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_virtualbox.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-23T21:26:52+0200
+# date:   2023-05-24T22:17:21+0200
 
 vboxmanage list vms \
     | cut -d '"' -f2 \
@@ -18,6 +18,7 @@ vboxmanage list vms \
         --preview "vboxmanage showvminfo {..-2}" \
     | {
         while IFS= read -r vm; do
+            printf "starting %s, please wait..." "$vm"
             case "$vm" in
                 *"[headless]")
                     vm=$(printf "%s" "$vm" \
