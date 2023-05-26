@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-05T13:09:57+0200
+# date:   2023-05-25T14:09:29+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -73,28 +73,30 @@ get_mirrors() {
 }
 
 get_mirrors_date() {
-    date -d "@$(curl -L -fs -m 3.33 "$1")" "+%d.%m.%y-%H:%M" 2>/dev/null \
+    date -d "@$(curl -Lfs -m 3.33 "$1")" "+%m-%dT%H:%M" 2>/dev/null \
         || printf "unreachable   "
 }
 
 get_mirrors_data() {
-    output=$(curl -L -s -m 9.99 -w "%{time_total} %{http_code}" -o /dev/null \
+    output=$(curl -Ls -m 9.99 -w "%{time_total} %{http_code}" -o /dev/null \
         "$1/core/os/$(uname -m)/core.db.tar.gz" \
     )
     [ $? -eq 28 ] \
-        && printf "                       timeout       " \
+        && printf "                     timeout    " \
         && return
 
     code=$(printf "%s\n" "$output" \
-        | cut -d ' ' -f2)
+        | cut -d ' ' -f2 \
+    )
+
     [ "$code" -eq 000 ] \
-        && printf "                       unknown       " \
+        && printf "                     unknown    " \
         && return
     [ "$code" -ne 200 ] \
-        && printf "                       http error %s" "$code" \
+        && printf "                     http %s   " "$code" \
         && return
 
-    printf "%.5f %s %s\n" \
+    printf "%.5f %s  %s\n" \
         "$(printf "%s\n" "$output" | cut -d ' ' -f1)" \
         "$(get_mirrors_date "$url/lastsync")" \
         "$(get_mirrors_date "$url/lastupdate")"
@@ -108,7 +110,8 @@ get_mirror_status() {
     output=$(printf "%s\n" "$*" \
         | awk -F "\"$url" '{print $2}' \
         | awk -F "\"$tag\": " '{print $2}' \
-        | cut -d ',' -f1)
+        | cut -d ',' -f1 \
+    )
 
     { [ -z "$output" ] || [ "$output" = "null" ] ;} \
         && printf "n/a\n" \
@@ -122,15 +125,15 @@ get_mirror_status() {
 }
 
 analyze_mirrors() {
-    status_data=$(curl -L -fsS -m 9.99 -H "Accept: application/json" \
+    status_data=$(curl -LfsS -m 9.99 -H "Accept: application/json" \
         "https://archlinux.org/mirrors/status/json" \
     )
-    header="time    synchronized   updated        order score mirror"
+    header="time    synchronized updated     rank score mirror"
 
     printf "%s\n" "$header"
     for url in $(get_mirrors "$1"); do
         order=$((order+1))
-        output=$(printf "%s %05s %05s %s\n" \
+        output=$(printf "%s %04s %05s %s\n" \
             "$(get_mirrors_data "$url")" \
             "$order" \
             "$(get_mirror_status "score" "$url" "$status_data")" \
@@ -140,9 +143,16 @@ analyze_mirrors() {
         sorted=$(printf "%s\n%s" "$sorted" "$output")
     done
 
-    printf "\n%s" "$header"
-    printf "%s\n" "$sorted" \
-        | LC_COLLATE=C sort -b
+    sorted=$(printf "%s" "$sorted" \
+        | LC_COLLATE=C sort -b \
+    )
+
+    printf "\n%s%s" "$header" "$sorted"
+
+    printf "\n\n## Mirrors %s\n" "$(date -I)"
+    printf "%s" "$sorted" \
+        | awk 'NR>1{print "Server = "$6"/$repo/os/$arch"}'
+    printf "\n"
 
     unset order sorted
 }
@@ -169,7 +179,8 @@ pkg_fullpath() {
 
 aur_helper_downgrade() {
     select=$(pkg_files "$1" \
-        | fzf -m -e)
+        | fzf -m -e \
+    )
     [ $? -eq 130 ] \
         && return 130
     [ -n "$select" ] \
@@ -187,7 +198,8 @@ ala_files() {
 
 ala_downgrade() {
     ala_pkg=$("$aur_helper" -Qq \
-        | fzf -e)
+        | fzf -e \
+    )
     [ $? -eq 130 ] \
         && return 130
     [ -z "$ala_pkg" ] \
@@ -200,7 +212,8 @@ ala_downgrade() {
     )
 
     select=$(ala_files "$url" "$ala_pkg" \
-        | fzf -e)
+        | fzf -e \
+    )
     [ $? -eq 130 ] \
         && return 130
     [ -n "$select" ] \
