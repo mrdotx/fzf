@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_virtualbox.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-24T22:17:21+0200
+# date:   2023-05-25T13:54:15+0200
 
 vboxmanage list vms \
     | cut -d '"' -f2 \
@@ -22,13 +22,15 @@ vboxmanage list vms \
             case "$vm" in
                 *"[headless]")
                     vm=$(printf "%s" "$vm" \
-                        | sed "s/ \[headless\]$//")
+                        | sed "s/ \[headless\]$//" \
+                    )
 
                     vboxmanage startvm "$vm" --type headless >/dev/null 2>&1
                     ;;
                 *"[gui]")
                     vm=$(printf "%s" "$vm" \
-                        | sed "s/ \[gui\]$//")
+                        | sed "s/ \[gui\]$//" \
+                    )
 
                     vboxmanage startvm "$vm" --type gui >/dev/null 2>&1
                     ;;
