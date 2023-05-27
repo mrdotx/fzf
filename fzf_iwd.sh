@@ -3,7 +3,20 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_iwd.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-21T10:21:29+0200
+# date:   2023-05-26T08:31:37+0200
+
+# help
+script=$(basename "$0")
+help="$script [-h/--help] -- script to connect to wlan with iwd
+  Usage:
+    $script
+
+  Examples:
+    $script"
+
+[ -n "$1" ] \
+    && printf "%s\n" "$help" \
+    && exit 0
 
 remove_escape_sequences() {
     tail -n +5 \

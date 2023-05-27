@@ -3,7 +3,24 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_virtualbox.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-25T13:54:15+0200
+# date:   2023-05-26T08:32:13+0200
+
+# speed up script and avoid language problems by using standard c
+LC_ALL=C
+LANG=C
+
+# help
+script=$(basename "$0")
+help="$script [-h/--help] -- script to start virtualbox vm
+  Usage:
+    $script
+
+  Examples:
+    $script"
+
+[ -n "$1" ] \
+    && printf "%s\n" "$help" \
+    && exit 0
 
 vboxmanage list vms \
     | cut -d '"' -f2 \
