@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-02T05:52:48+0200
+# date:   2023-05-26T08:31:54+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -13,7 +13,7 @@ LANG=C
 # depending on configuration requirements
 auth="${EXEC_AS_USER:-sudo}"
 
-#config
+# config
 mount_dir="/tmp"
 image_dir="$HOME/Downloads"
 

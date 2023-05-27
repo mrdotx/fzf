@@ -3,13 +3,13 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_ssh.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-25T13:53:13+0200
+# date:   2023-05-26T08:32:01+0200
 
 # config
 ssh_config="$HOME/.ssh/config"
 edit="$EDITOR"
 
-#help
+# help
 script=$(basename "$0")
 help="$script [-h/--help] -- script to open configured ssh sessions
   Usage:
