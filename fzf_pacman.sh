@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-28T10:07:55+0200
+# date:   2023-05-28T14:50:01+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -78,7 +78,7 @@ get_mirrors() {
 
 get_mirrors_date() {
     date -d "@$(curl -Lfs -m 3.33 "$1")" "+%m-%dT%H:%M" 2>/dev/null \
-        || printf "unreachable   "
+        || printf "unreachable"
 }
 
 get_mirrors_data() {
