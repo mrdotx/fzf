@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-27T11:51:55+0200
+# date:   2023-05-28T10:07:55+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -86,7 +86,7 @@ get_mirrors_data() {
         "$1/core/os/$(uname -m)/core.db.tar.gz" \
     )
     [ $? -eq 28 ] \
-        && printf "                     timeout    " \
+        && printf "                    timeout    " \
         && return
 
     code=$(printf "%s\n" "$output" \
@@ -94,13 +94,13 @@ get_mirrors_data() {
     )
 
     [ "$code" -eq 000 ] \
-        && printf "                     unknown    " \
+        && printf "                    unknown    " \
         && return
     [ "$code" -ne 200 ] \
-        && printf "                     http %s   " "$code" \
+        && printf "                    http %s   " "$code" \
         && return
 
-    printf "%.5f %s  %s\n" \
+    printf "%.5f %s %s\n" \
         "$(printf "%s\n" "$output" | cut -d ' ' -f1)" \
         "$(get_mirrors_date "$url/lastsync")" \
         "$(get_mirrors_date "$url/lastupdate")"
@@ -132,7 +132,7 @@ analyze_mirrors() {
     status_data=$(curl -LfsS -m 9.99 -H "Accept: application/json" \
         "https://archlinux.org/mirrors/status/json" \
     )
-    header="time    synchronized updated     rank score mirror"
+    header="time    synched     database    rank score mirror"
 
     printf "%s\n" "$header"
     for url in $(get_mirrors "$1"); do
