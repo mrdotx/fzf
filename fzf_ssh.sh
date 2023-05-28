@@ -3,7 +3,11 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_ssh.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-26T08:32:01+0200
+# date:   2023-05-27T11:52:25+0200
+
+# speed up script and avoid language problems by using standard c
+LC_ALL=C
+LANG=C
 
 # config
 ssh_config="$HOME/.ssh/config"

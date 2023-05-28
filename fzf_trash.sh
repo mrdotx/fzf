@@ -3,7 +3,11 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-02T05:56:45+0200
+# date:   2023-05-27T12:13:32+0200
+
+# speed up script and avoid language problems by using standard c
+LC_ALL=C
+LANG=C
 
 # help
 script=$(basename "$0")

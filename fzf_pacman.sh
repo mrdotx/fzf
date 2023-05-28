@@ -3,7 +3,11 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-25T14:09:29+0200
+# date:   2023-05-27T11:51:55+0200
+
+# speed up script and avoid language problems by using standard c
+LC_ALL=C
+LANG=C
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements

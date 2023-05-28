@@ -3,7 +3,11 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_usb.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-28T19:09:28+0200
+# date:   2023-05-27T11:53:17+0200
+
+# speed up script and avoid language problems by using standard c
+LC_ALL=C
+LANG=C
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
