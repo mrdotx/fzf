@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-28T14:50:01+0200
+# date:   2023-05-28T17:39:10+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -148,14 +148,14 @@ analyze_mirrors() {
     done
 
     sorted=$(printf "%s" "$sorted" \
-        | LC_COLLATE=C sort -b \
+        | sort -b \
     )
 
     printf "\n%s%s" "$header" "$sorted"
 
     printf "\n\n## Mirrors %s\n" "$(date -I)"
     printf "%s" "$sorted" \
-        | awk 'NR>1{print "Server = "$6"/$repo/os/$arch"}'
+        | awk '$6{print "Server = "$6"/$repo/os/$arch"}'
     printf "\n"
 
     unset order sorted
