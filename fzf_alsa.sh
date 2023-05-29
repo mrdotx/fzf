@@ -3,9 +3,9 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_alsa.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-04-29T11:56:32+0200
+# date:   2023-05-28T21:28:56+0200
 
-# use standard c to identify the playback device
+# speed up script and avoid language problems by using standard c
 LC_ALL=C
 LANG=C
 
