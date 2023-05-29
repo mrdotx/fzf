@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-27T12:13:32+0200
+# date:   2023-05-28T18:29:29+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -25,7 +25,7 @@ help="$script [-h/--help] -- script to manage files/folders with trash-cli
 trash_remove() {
     trash-list \
         | cut -d ' ' -f3- \
-        | LC_COLLATE=C sort -u \
+        | sort -u \
         | fzf -m -e \
             --preview-window "up:75%:wrap" \
             --preview "trash-list | grep {}$" \
@@ -40,7 +40,7 @@ trash_put() {
     find . -maxdepth 1 \
         | sed 1d \
         | cut -b3- \
-        | LC_COLLATE=C sort \
+        | sort \
         | fzf -m -e \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%" \
