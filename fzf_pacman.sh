@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-29T18:36:33+0200
+# date:   2023-06-03T14:39:31+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -168,7 +168,7 @@ pkg_lists_backup() {
 
 pkg_files() {
     find "$1" -type f \( -iname '*.pkg.tar.*' ! -iname '*.sig' \) -print0 \
-        | xargs -0 basename -a \
+        | xargs -0 basename -a 2>/dev/null \
         | sort
 }
 
