@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-29T18:36:33+0200
+# date:   2023-06-03T09:36:00+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -333,9 +333,9 @@ while true; do
                     ;;
                 \"clear package cache\")
                     printf \":: old packages\n\"
-                    \"$auth\" paccache -dvk$pacman_cache_versions
+                    \"$auth\" paccache -c \"$pacman_cache\" -dvk$pacman_cache_versions
                     printf \":: uninstalled packages\n\"
-                    \"$auth\" paccache -dvuk0
+                    \"$auth\" paccache -c \"$pacman_cache\" -dvuk0
                     printf \":: orphan packages\n\"
                     \"$aur_helper\" -Qdtq
                     ;;
@@ -408,8 +408,8 @@ while true; do
             "$auth" pacdiff -f
             ;;
         "clear package cache")
-            "$auth" paccache -rvk$pacman_cache_versions
-            "$auth" paccache -rvuk0
+            "$auth" paccache -c "$pacman_cache" -rvk$pacman_cache_versions
+            "$auth" paccache -c "$pacman_cache" -rvuk0
             "$aur_helper" -c
             ;;
         *)
