@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-06-03T14:39:31+0200
+# date:   2023-06-04T08:36:10+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -86,7 +86,7 @@ get_mirrors_data() {
         "$1/core/os/$(uname -m)/core.db.tar.gz" \
     )
     [ $? -eq 28 ] \
-        && printf "                    timeout    " \
+        && printf "                        timeout" \
         && return
 
     code=$(printf "%s\n" "$output" \
@@ -94,10 +94,10 @@ get_mirrors_data() {
     )
 
     [ "$code" -eq 000 ] \
-        && printf "                    unknown    " \
+        && printf "                        unknown" \
         && return
     [ "$code" -ne 200 ] \
-        && printf "                    http %s   " "$code" \
+        && printf "                       http %s" "$code" \
         && return
 
     printf "%.5f %s %s\n" \
