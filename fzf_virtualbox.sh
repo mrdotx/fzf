@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_virtualbox.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-26T08:32:13+0200
+# date:   2023-06-29T21:51:38+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -30,7 +30,7 @@ vboxmanage list vms \
             printf "%s [headless]\n" "$vm"
         done
     } \
-    | fzf -m -e \
+    | fzf -m -e --query="[gui] " \
         --preview-window "up:75%:wrap" \
         --preview "vboxmanage showvminfo {..-2}" \
     | {
