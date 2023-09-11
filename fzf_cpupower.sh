@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-24T22:42:13+0200
+# date:   2023-09-11T09:18:21+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -15,6 +15,12 @@ auth="${EXEC_AS_USER:-sudo}"
 config="/etc/default/cpupower"
 service="cpupower.service"
 edit="$EDITOR"
+
+# sysfs policy control files
+policies_path="/sys/devices/system/cpu/cpufreq"
+governor_path="$policies_path/policy0/scaling_governor"
+epp_available_path="$policies_path/policy0/energy_performance_available_preferences"
+epp_path="$policies_path/policy0/energy_performance_preference"
 
 # help
 script=$(basename "$0")
@@ -76,7 +82,7 @@ cpupower_wrapper() {
 }
 
 get_governor_info() {
-    governor=$(cat "/sys/devices/system/cpu/cpufreq/policy0/scaling_governor")
+    governor=$(cat "$governor_path")
 
     printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n" \
         "== generic scaling governors ==" \
@@ -86,15 +92,32 @@ get_governor_info() {
         "powersave      = minimum cpu frequency (scaling_min_freq)" \
         "performance    = maximum cpu frequency (scaling_max_freq)" \
         "schedutil      = scheduler-driven cpu frequency" \
-            | sed "s/$governor  /$(highlight_string "$governor")/"
+            | sed "s/\b$governor\b  /$(highlight_string "$governor")/"
 
     printf "== available governors ==\n%s\n\n" \
         "$(cpupower_wrapper --governors)" \
-            | sed "s/$governor/$(highlight_string "$governor")/"
+            | sed "s/\b$governor\b/$(highlight_string "$governor")/"
 
     printf "== currently used cpufreq policy ==\n%s\n\n" \
         "$(cpupower_wrapper --policy)" \
-            | sed "s/\"$governor\"/$(highlight_string "$governor")/"
+            | sed "s/\"\b$governor\b\"/$(highlight_string "$governor")/"
+}
+
+get_epp_info() {
+    epp=$(cat "$epp_path")
+
+    printf "%s\n%s\n%s\n%s\n%s\n%s\n\n" \
+        "== generic energy performance preferences ==" \
+        "default                = performance and power are balanced" \
+        "performance            = maximum performance" \
+        "balance_performance    = high priority on performance" \
+        "balance_power          = power and performance are balanced" \
+        "power                  = maximum energy efficiency" \
+            | sed "s/\b$epp\b  /$(highlight_string "$epp")/"
+
+    printf "== available energy performance preferences ==\n%s\n\n" \
+        "$(printf "%s" "$epp_available")" \
+            | sed "s/\b$epp\b/$(highlight_string "$epp")/"
 }
 
 get_frequency_info() {
@@ -132,6 +155,16 @@ set_governor() {
             "$(printf "%s" "$1" | cut -d' ' -f3)"
 }
 
+set_epp() {
+    [ -n "$1" ] \
+        && for policy in $(find "$policies_path" -maxdepth 1 -type d | sed 1d); do
+            printf "Setting epp: "
+            printf "%s\n" "$1" \
+                | cut -d' ' -f3 \
+                | "$auth" tee "$policy/energy_performance_preference"
+        done
+}
+
 set_frequency() {
     printf "Frequencies can be passed in Hz, kHz, MHz, GHz, or THz.\n"
     printf "e.g. 1400MHz, leave blank to return to the menu without changes.\n"
@@ -156,17 +189,28 @@ toggle_cpupower_service() {
     fi
 }
 
-while true; do
-    # menu
-    select=$(printf "%s\n" \
+get_menu_entries() {
+    printf "%s\n" \
             "set frequency" \
             "set frequency min" \
             "set frequency max" \
             "$(for value in $(cpupower_wrapper --governors); do
                 printf "set governor %s\n" "$value"
             done)" \
+            "$(for value in $epp_available; do
+                printf "set epp %s\n" "$value"
+            done)" \
             "toggle service" \
             "edit config" \
+        | sed '/^$/d'
+}
+
+while true; do
+    [ -s "$epp_available_path" ] \
+        && epp_available=$(cat "$epp_available_path")
+
+    # menu
+    select=$(get_menu_entries \
         | fzf -e --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%,wrap" \
@@ -176,6 +220,9 @@ while true; do
                     ;;
                 \"set governor\"*)
                     printf \"%s\" \"$(get_governor_info)\"
+                    ;;
+                \"set epp\"*)
+                    printf \"%s\" \"$(get_epp_info)\"
                     ;;
                 \"toggle service\")
                     printf \"%s\" \"$($auth systemctl status $service)\"
@@ -202,6 +249,10 @@ while true; do
             ;;
         "set governor"*)
             set_governor "$select" \
+                || exit_status
+            ;;
+        "set epp"*)
+            set_epp "$select" \
                 || exit_status
             ;;
         "toggle service")
