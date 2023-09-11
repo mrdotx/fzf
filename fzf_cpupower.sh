@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-09-11T09:18:21+0200
+# date:   2023-09-11T09:22:31+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -104,7 +104,8 @@ get_governor_info() {
 }
 
 get_epp_info() {
-    epp=$(cat "$epp_path")
+    [ -s "$epp_path" ] \
+        && epp=$(cat "$epp_path")
 
     printf "%s\n%s\n%s\n%s\n%s\n%s\n\n" \
         "== generic energy performance preferences ==" \
