@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-06-04T08:36:10+0200
+# date:   2023-12-12T10:42:47+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -26,6 +26,7 @@ pacman_cache_versions=1
 pacman_config="/etc/pacman.conf"
 pacman_mirrors="/etc/pacman.d/mirrorlist"
 pacman_log="/var/log/pacman.log"
+pacman_log_days=180
 backup_all="$aur_folder/pkgs_all.txt"
 backup_explicit="$aur_folder/pkgs_explicit.txt"
 
@@ -51,6 +52,7 @@ help="$script [-h/--help] -- script to manage packages with pacman and $aur_help
     pacman_config         = $pacman_config
     pacman_mirrors        = $pacman_mirrors
     pacman_log            = $pacman_log
+    pacman_log_days       = $pacman_log_days
     backup_all            = $backup_all
     backup_explicit       = $backup_explicit
 
@@ -68,6 +70,25 @@ log_latest_activities() {
     grep "$log_filter" "$pacman_log" \
         | tail -n1 \
         | cut -b 2-11
+}
+
+log_clear() {
+    printf \
+        "Remove data from pacman.log that are older then %s day(s)? [y]es/[N]o: " \
+        "$pacman_log_days" \
+            && read -r clear_log
+
+    case $clear_log in
+        y|Y|yes|Yes)
+            pacman_log_bak="/tmp/pacman.log.bak"
+
+            "$auth" mv "$pacman_log" "$pacman_log_bak" \
+                && awk -v Date="$(date -d "now-$pacman_log_days days" \
+                        "+[%Y-%m-%dT%H:%M:%S+0000]")" \
+                        '$1 > Date {print $0}' "$pacman_log_bak" \
+                    | "$auth" tee "$pacman_log" >/dev/null
+            ;;
+    esac
 }
 
 get_mirrors() {
@@ -267,6 +288,7 @@ while true; do
                 "edit pacman mirrorlist" \
                 "analyze pacman mirrors" \
                 "diff package config" \
+                "clear pacman.log" \
                 "clear package cache" \
         | fzf -e --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
@@ -330,6 +352,9 @@ while true; do
                 \"diff package config\")
                     printf \":: pacorig, pacnew and pacsav files\n\"
                     \"$auth\" pacdiff -f -o
+                    ;;
+                \"clear pacman.log\")
+                    cat \"$pacman_log\"
                     ;;
                 \"clear package cache\")
                     printf \":: old packages\n\"
@@ -406,6 +431,10 @@ while true; do
             ;;
         "diff package config")
             "$auth" pacdiff -f
+            ;;
+        "clear pacman.log")
+            log_clear
+            "$auth" "$edit" "$pacman_log"
             ;;
         "clear package cache")
             "$auth" paccache -rvk$pacman_cache_versions
