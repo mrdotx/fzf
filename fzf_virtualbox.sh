@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_virtualbox.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-06-29T21:51:38+0200
+# date:   2023-12-25T15:41:17+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -54,4 +54,3 @@ vboxmanage list vms \
             esac
         done
     }
-
