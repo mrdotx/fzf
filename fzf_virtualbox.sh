@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_virtualbox.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-12-25T15:41:17+0100
+# date:   2024-02-23T10:23:19+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -33,24 +33,22 @@ vboxmanage list vms \
     | fzf -m -e --query="[gui] " \
         --preview-window "up:75%:wrap" \
         --preview "vboxmanage showvminfo {..-2}" \
-    | {
-        while IFS= read -r vm; do
-            printf "starting %s, please wait..." "$vm"
-            case "$vm" in
-                *"[headless]")
-                    vm=$(printf "%s" "$vm" \
-                        | sed "s/ \[headless\]$//" \
-                    )
+    | while IFS= read -r vm; do
+        printf "starting %s, please wait..." "$vm"
+        case "$vm" in
+            *"[headless]")
+                vm=$(printf "%s" "$vm" \
+                    | sed "s/ \[headless\]$//" \
+                )
 
-                    vboxmanage startvm "$vm" --type headless >/dev/null 2>&1
-                    ;;
-                *"[gui]")
-                    vm=$(printf "%s" "$vm" \
-                        | sed "s/ \[gui\]$//" \
-                    )
+                vboxmanage startvm "$vm" --type headless >/dev/null 2>&1
+                ;;
+            *"[gui]")
+                vm=$(printf "%s" "$vm" \
+                    | sed "s/ \[gui\]$//" \
+                )
 
-                    vboxmanage startvm "$vm" --type gui >/dev/null 2>&1
-                    ;;
-            esac
-        done
-    }
+                vboxmanage startvm "$vm" --type gui >/dev/null 2>&1
+                ;;
+        esac
+    done
