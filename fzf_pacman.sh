@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-12-12T10:42:47+0100
+# date:   2024-03-24T09:53:25+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -303,7 +303,7 @@ while true; do
                     ;;
                 \"system upgrade\")
                     printf \":: packages to update\n\"
-                    checkupdates
+                    checkupdates --nocolor
                     \"$aur_helper\" -Qua
                     ;;
                 \"install packages\")
