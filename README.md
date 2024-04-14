@@ -2,7 +2,7 @@
 
 shell scripts for fzf
 
-| name              | comment                                                           |
+| file              | comment                                                           |
 | :---------------- | :---------------------------------------------------------------- |
 | fzf_alsa.sh       | set the default alsa playback device via asoundrc config file     |
 | fzf_cpupower.sh   | manage cpupower                                                   |
