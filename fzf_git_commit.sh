@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_git_commit.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-27T11:53:51+0200
+# date:   2024-04-17T17:14:42+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
