@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-09-12T07:56:16+0200
+# date:   2024-04-19T12:25:08+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -85,7 +85,7 @@ get_governor_info() {
     governor=$(cat "$governor_path")
 
     printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n" \
-        "== generic scaling governors ==" \
+        "» generic scaling governors" \
         "conservative   = current load (more gradually than ondemand)" \
         "ondemand       = scales cpu frequency according to current load" \
         "userspace      = user specified cpu frequency (scaling_setspeed)" \
@@ -94,11 +94,11 @@ get_governor_info() {
         "schedutil      = scheduler-driven cpu frequency" \
             | sed "s/\b$governor\b  /$(highlight_string "$governor")/"
 
-    printf "== available governors ==\n%s\n\n" \
+    printf "» available governors\n%s\n\n" \
         "$(cpupower_wrapper --governors)" \
             | sed "s/\b$governor\b/$(highlight_string "$governor")/"
 
-    printf "== currently used cpufreq policy ==\n%s\n\n" \
+    printf "» currently used cpufreq policy\n%s\n\n" \
         "$(cpupower_wrapper --policy)" \
             | sed "s/\"\b$governor\b\"/$(highlight_string "$governor")/"
 }
@@ -108,7 +108,7 @@ get_epp_info() {
         && epp=$(cat "$epp_path")
 
     printf "%s\n%s\n%s\n%s\n%s\n%s\n\n" \
-        "== generic energy performance preferences ==" \
+        "» generic energy performance preferences" \
         "default                = performance and power are balanced" \
         "performance            = maximum performance" \
         "balance_performance    = high priority on performance" \
@@ -116,37 +116,37 @@ get_epp_info() {
         "power                  = maximum energy efficiency" \
             | sed "s/\b$epp\b  /$(highlight_string "$epp")/"
 
-    printf "== available energy performance preferences ==\n%s\n\n" \
+    printf "» available energy performance preferences\n%s\n\n" \
         "$(printf "%s" "$epp_available")" \
             | sed "s/\b$epp\b/$(highlight_string "$epp")/"
 }
 
 get_frequency_info() {
-    printf "== current cpu frequency ==\n%s\n\n" \
+    printf "» current cpu frequency\n%s\n\n" \
         "$(cpupower_wrapper --freq --human)"
 
-    printf "== maximum cpu frequency ==\n%s\n\n" \
+    printf "» maximum cpu frequency\n%s\n\n" \
         "$(cpupower_wrapper --hwlimits --human)"
 
-    printf "== boost state support ==\n%s\n\n" \
+    printf "» boost state support\n%s\n\n" \
         "$(cpupower_wrapper --boost)"
 
-    printf "== cpu frequency statistics ==\n%s\n\n" \
+    printf "» cpu frequency statistics\n%s\n\n" \
         "$(cpupower_wrapper --stats --human)"
 
-    printf "== cpus run at the same hardware frequency ==\n%s\n\n" \
+    printf "» cpus run at the same hardware frequency\n%s\n\n" \
         "$(cpupower_wrapper --related-cpus)"
 
-    printf "== cpus need to have their frequency coordinated by software ==\n%s\n\n" \
+    printf "» cpus need to have their frequency coordinated by software\n%s\n\n" \
         "$(cpupower_wrapper --affected-cpus)"
 
-    printf "== maximum latency on cpu frequency changes ==\n%s\n\n" \
+    printf "» maximum latency on cpu frequency changes\n%s\n\n" \
         "$(cpupower_wrapper --latency --human)"
 
-    printf "== performances and frequencies capabilities of cppc ==\n%s\n\n" \
+    printf "» performances and frequencies capabilities of cppc\n%s\n\n" \
         "$(cpupower_wrapper --perf)"
 
-    printf "== used cpu kernel driver ==\n%s\n\n" \
+    printf "» used cpu kernel driver\n%s\n\n" \
         "$(cpupower_wrapper --driver)"
 }
 
