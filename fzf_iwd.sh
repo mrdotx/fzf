@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_iwd.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-27T11:53:41+0200
+# date:   2024-04-19T12:33:36+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -99,12 +99,12 @@ select_device() {
     )
 
     device=$(printf "%s" "$devices" \
-        | awk '{print $1"\n== toggle power =="}' \
+        | awk '{print $1"\n» toggle power"}' \
         | fzf -e --cycle \
             --preview-window "up:75%" \
             --preview-label "[ device ]" \
             --preview "case {} in
-                \"== toggle power ==\")
+                \"» toggle power\")
                     iwctl device list
                     ;;
                 *)
@@ -113,7 +113,7 @@ select_device() {
             esac" \
     )
 
-    [ "$device" = "== toggle power ==" ] \
+    [ "$device" = "» toggle power" ] \
         || [ "$(get_device_power "$device")" = "off" ] \
         && select_device_power
 
@@ -146,9 +146,9 @@ select_device_power() {
 select_ssid() {
     ssid=$(printf "%s\n" \
             "$ssids" \
-            "== enter ssid ==" \
-            "== disconnect ==" \
-            "== rescan ==" \
+            "» enter ssid" \
+            "» disconnect" \
+            "» rescan" \
         | fzf -e --cycle \
             --preview-window "up:75%" \
             --preview-label "[ connect ]" \
@@ -159,16 +159,16 @@ select_ssid() {
 
     [ -n "$ssid" ] \
         && case "$ssid" in
-            "== disconnect ==")
+            "» disconnect")
                 iwctl station "$1" disconnect
                 select_ssid "$1"
                 ;;
-            "== rescan ==")
+            "» rescan")
                 scan_ssids "$1"
                 select_ssid "$1"
                 ;;
             *)
-                [ "$ssid" = "== enter ssid ==" ] \
+                [ "$ssid" = "» enter ssid" ] \
                     && printf "leave blank to exit!\n" \
                     && printf "ssid: " \
                     && read -r ssid
