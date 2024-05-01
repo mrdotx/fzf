@@ -24,3 +24,4 @@ config files:
 related projects:
 
 - [dmenu](https://github.com/mrdotx/dmenu)
+- [superdrive](https://github.com/mrdotx/superdrive)
