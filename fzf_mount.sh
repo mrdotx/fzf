@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-09-14T17:54:32+0200
+# date:   2024-05-01T08:05:46+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -240,6 +240,37 @@ mount_android() {
     esac
 }
 
+activate_superdrive() {
+    case $1 in
+        preview)
+            if command -v "sg_raw" > /dev/null 2>&1; then \
+                lsblk -lpo "name,type,fstype,size,mountpoint" \
+                    | awk 'NR==1 \
+                            || $2=="rom" \
+                        {printf "%s\n",$0}'
+            else
+                printf "==> this does not work without sg3-utils installed\n"
+            fi
+            ;;
+        *)
+            select="$(lsblk -nrpo "name,type,fstype" \
+                | awk '$2=="rom" \
+                    {printf "%s\n",$1}' \
+                | fzf -e \
+                    --bind 'focus:transform-preview-label:echo [ {} ]' \
+                    --preview-window "right:75%" \
+                    --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
+            )"
+
+            [ -z "$select" ] \
+                && return 0
+
+            $auth sg_raw "$select" ea 00 00 00 00 00 01 \
+                && printf "%s superdrive activated\n" "$select"
+            ;;
+    esac
+}
+
 eject_disc() {
     case $1 in
         preview)
@@ -281,6 +312,7 @@ case $(printf "%s\n" \
         "mount rclone" \
         "mount image" \
         "mount android" \
+        "activate superdrive" \
         "eject disc" \
     | fzf -e --cycle \
         --bind 'focus:transform-preview-label:echo [ {} ]' \
@@ -300,6 +332,9 @@ case $(printf "%s\n" \
                 ;;
             \"mount android\")
                 printf \"%s\" \"$(mount_android preview)\"
+                ;;
+            \"activate superdrive\")
+                printf \"%s\" \"$(activate_superdrive preview)\"
                 ;;
             \"eject disc\")
                 printf \"%s\" \"$(eject_disc preview)\"
@@ -328,6 +363,11 @@ case $(printf "%s\n" \
         ;;
     "mount android")
         mount_android \
+            || exit_status
+        "$0"
+        ;;
+    "activate superdrive")
+        activate_superdrive \
             || exit_status
         "$0"
         ;;
