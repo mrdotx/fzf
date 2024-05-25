@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_iwd.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-04-19T12:33:36+0200
+# date:   2024-05-24T23:24:52+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -31,7 +31,6 @@ read_secret() {
     stty -echo
     trap 'stty echo' EXIT
 
-    # shellcheck disable=SC2162
     read "$@"
 
     stty echo
