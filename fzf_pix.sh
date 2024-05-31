@@ -3,14 +3,13 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pix.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-05-30T07:18:04+0200
+# date:   2024-05-30T17:54:54+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
 LANG=C
 
 # config
-open_with="ranger"
 w3mimgdisplay="/usr/lib/w3m/w3mimgdisplay"
 preview_width=100   # in percent
 preview_height=75   # in percent
@@ -21,10 +20,14 @@ font_height=19      # in pixel
 script=$(basename "$0")
 help="$script [-h/--help] -- script to search for pictures
   Usage:
-    $script
+    $script <path/dir>
+
+  Settings:
+    <path/dir> = if empty, the current working directory is used
 
   Examples:
-    $script"
+    $script
+    $script $HOME/Pictures"
 
 preview() {
     # calculate dimensions
@@ -83,21 +86,16 @@ case $1 in
         preview "$1"
         ;;
     *)
-        select=$( \
-            find . \
-                    -type f \
-                    \( -iname '*.jpg' \
-                    -o -iname '*.png' \
-                    -o -iname '*.gif' \
-                    -o -iname '*.bmp' \
-                    \) 2> /dev/null \
-                | cut -b3- \
-                | fzf -e \
-                    --preview-window "up:$preview_height%" \
-                    --preview "$script --preview {}" \
-            )
-
-        [ -n "$select" ] \
-            && $open_with "$select"
+        find "${1:-$(pwd)}" \
+                -type f \
+                \( -iname '*.jpg' \
+                -o -iname '*.png' \
+                -o -iname '*.gif' \
+                -o -iname '*.bmp' \
+                \) 2> /dev/null \
+            | sort \
+            | fzf -e +s \
+                --preview-window "up:$preview_height%" \
+                --preview "$script --preview {}" \
         ;;
 esac
