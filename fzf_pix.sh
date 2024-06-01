@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pix.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-05-30T17:54:54+0200
+# date:   2024-05-31T22:19:54+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -86,16 +86,22 @@ case $1 in
         preview "$1"
         ;;
     *)
-        find "${1:-$(pwd)}" \
+        directory="$(pwd)"
+        find "${1:-.}" \
                 -type f \
                 \( -iname '*.jpg' \
+                -o -iname '*.jpeg' \
                 -o -iname '*.png' \
                 -o -iname '*.gif' \
+                -o -iname '*.webp' \
+                -o -iname '*.tiff' \
                 -o -iname '*.bmp' \
                 \) 2> /dev/null \
+            | sed 's/^.\///' \
             | sort \
-            | fzf -e +s \
+            | fzf -e -m +s \
+                --bind "focus:transform-preview-label:echo [ $directory ]" \
                 --preview-window "up:$preview_height%" \
-                --preview "$script --preview {}" \
+                --preview "$0 --preview {}" \
         ;;
 esac
