@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-02-23T10:18:28+0100
+# date:   2024-06-01T21:48:00+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -36,8 +36,7 @@ trash_remove() {
 
 trash_put() {
     find . -maxdepth 1 \
-        | sed 1d \
-        | cut -b3- \
+        | sed -e 1d -e 's/^.\///' \
         | sort \
         | fzf -m -e \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
