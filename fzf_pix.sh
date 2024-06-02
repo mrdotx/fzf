@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pix.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-05-31T22:19:54+0200
+# date:   2024-06-01T21:55:00+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -62,8 +62,8 @@ preview() {
     printf '6;%s;%s;%s;%s\n4;\n3;' \
             "$font_width" \
             "$font_height" \
-            "$((preview_width + 10))" \
-            "$((preview_height + 10))" \
+            "$((preview_width + 2))" \
+            "$((preview_height + 2))" \
         | "$w3mimgdisplay"
 
     # preview picture
@@ -100,7 +100,7 @@ case $1 in
             | sed 's/^.\///' \
             | sort \
             | fzf -e -m +s \
-                --bind "focus:transform-preview-label:echo [ $directory ]" \
+                --preview-label="[ $directory ]" \
                 --preview-window "up:$preview_height%" \
                 --preview "$0 --preview {}" \
         ;;
