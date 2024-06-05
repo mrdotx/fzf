@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-03T20:36:08+0200
+# date:   2024-06-04T23:19:21+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -28,27 +28,13 @@ help="$script [-h/--help] -- script to find files with w3m image preview
     $script
     $script $HOME/Pictures"
 
-clear_preview_pane() {
-    printf '6;%d;%d;%d;%d\n4;\n3;' \
-            "$font_width" \
-            "$font_height" \
-            "$(($1 + 2))" \
-            "$(($2 + 2))" \
-        | "$w3mimgdisplay"
-
-    # mitigate w3mimgdisplay newline
-    printf "\033[2J"
-
-    # mitigate horizontal black bars
-    sleep .2
-}
-
 preview_image() {
     width=$1
     height=$2
 
     # calculate image dimensions
-    image_dimensions=$(printf '5;%s' "$3" | $w3mimgdisplay)
+    image_dimensions=$(printf '5;%s' "$3" | $w3mimgdisplay) 2>/dev/null \
+        || return
     image_width=$(printf '%s' "$image_dimensions" | cut -d' ' -f1)
     image_height=$(printf '%s' "$image_dimensions" | cut -d' ' -f2)
 
@@ -73,9 +59,35 @@ preview_image() {
         | $w3mimgdisplay
 }
 
-preview() {
-    mime_type="$(file --dereference --brief --mime-type "$3")"
+preview_fallback() {
+    printf "##### File Type Classification #####\n"
+    printf "MIME-Type: %s\n" "$2"
+    file --dereference --brief "$1"
+    printf "\n##### Exif information #####\n"
+    exiftool "$1"
+    return 0
+}
 
+clear_preview_pane() {
+    printf '6;%d;%d;%d;%d\n4;\n3;' \
+                "$font_width" \
+                "$font_height" \
+                "$(($1 + 2))" \
+                "$(($2 + 2))" \
+            | "$w3mimgdisplay" 2>/dev/null \
+        || return
+
+    # mitigate w3mimgdisplay newline
+    printf "\033[2J"
+
+    # mitigate horizontal black bars
+    sleep .2
+}
+
+preview() {
+    clear_preview_pane "$1" "$2"
+
+    mime_type="$(file --dereference --brief --mime-type "$3")"
     case "$mime_type" in
         image/svg*)
             cache_file=$(mktemp "$4/svg_XXXXXX.png")
@@ -167,23 +179,20 @@ preview() {
         */x-bittorrent)
             aria2c --show-files "$3"
             ;;
-        */x-executable | */x-pie-executable | */x-sharedlib)
+        */x-executable | */x-pie-executable | */x-sharedlib | */x-object)
             readelf --wide --demangle --all "$3"
             ;;
         text/troff)
             man "$3"
             ;;
-        text/* | */javascript | */json | */xml)
+        text/* | */javascript | */json | */xml | */x-wine-extension-ini)
             highlight "$3"
             ;;
         *)
-            printf "##### File Status #####\n"
-            stat --dereference "$3"
-            printf "\n##### File Type Classification #####\n"
-            file --dereference --brief "$3"
-            printf "%s\n" "$mime_type"
+            preview_fallback "$3" "$mime_type"
             ;;
-    esac
+    esac \
+        || preview_fallback "$3" "$mime_type"
 
     # remove cache file
     [ -n "$cache_file" ] \
@@ -209,7 +218,6 @@ case $1 in
         preview_height=$((max_height * preview_height / 100 - padding_height))
 
         # preview file
-        clear_preview_pane "$preview_width" "$preview_height"
         preview "$preview_width" "$preview_height" "$1" "$2"
         ;;
     *)
