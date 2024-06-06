@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-04T23:19:21+0200
+# date:   2024-06-05T22:20:18+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -28,15 +28,15 @@ help="$script [-h/--help] -- script to find files with w3m image preview
     $script
     $script $HOME/Pictures"
 
-preview_image() {
+image_preview() {
     width=$1
     height=$2
 
     # calculate image dimensions
-    image_dimensions=$(printf '5;%s' "$3" | $w3mimgdisplay) 2>/dev/null \
-        || return
+    image_dimensions=$(printf '5;%s' "$3" | $w3mimgdisplay) 2>/dev/null
     image_width=$(printf '%s' "$image_dimensions" | cut -d' ' -f1)
     image_height=$(printf '%s' "$image_dimensions" | cut -d' ' -f2)
+    [ "${image_width:-0}" -gt 0 ] && [ "${image_height:-0}" -gt 0 ] || return 1
 
     [ "$image_height" -gt "$height" ] \
         && width=$((image_width * height / image_height)) \
@@ -59,15 +59,6 @@ preview_image() {
         | $w3mimgdisplay
 }
 
-preview_fallback() {
-    printf "##### File Type Classification #####\n"
-    printf "MIME-Type: %s\n" "$2"
-    file --dereference --brief "$1"
-    printf "\n##### Exif information #####\n"
-    exiftool "$1"
-    return 0
-}
-
 clear_preview_pane() {
     printf '6;%d;%d;%d;%d\n4;\n3;' \
                 "$font_width" \
@@ -84,83 +75,133 @@ clear_preview_pane() {
     sleep .2
 }
 
-preview() {
-    clear_preview_pane "$1" "$2"
+extension_preview() {
+    case "$(printf "%s" "${3##*.}" | tr '[:upper:]' '[:lower:]')" in
+        7z | a | alz | apk | arj | bz | bz2 | bzip2 | cab | cb7 | cbt | chm \
+            | chw | cpio | deb | dmg | gz | gzip | hxs | iso | jar | lha | lz \
+            | lzh | lzma | lzo | msi | pkg | rar | rpm | swm | tar | taz | tbz \
+            | tbz2 | tgz | tlz | txz | tz2 | tzo | tzst | udf | war | wim | xar \
+            | xpi | xz | z | zip | zst)
+                # requires compressor.sh (https://github.com/mrdotx/shell)
+                compressor.sh --list "$3"
+            ;;
+        issue)
+            printf "%b\nhost login: _" "$(sed \
+                -e 's/\\4{/INTERFACE{/g' \
+                -e 's/\\4/11.11.11.11/g' \
+                -e 's/\\6{/INTERFACE{/g' \
+                -e 's/\\6/::ffff:0b0b:0b0b/g' \
+                -e 's/\\b/38400/g' \
+                -e 's/\\d/Fri Nov 11  2011/g' \
+                -e 's/\\l/tty1/g' \
+                -e 's/\\m/x86_64/g' \
+                -e 's/\\n/host/g' \
+                -e 's/\\o/(none)/g' \
+                -e 's/\\O/unknown_domain/g' \
+                -e 's/\\r/2.4.37-arch1-1/g' \
+                -e 's/\\s/Linux/g' \
+                -e 's/\\S{/VARIABLE{/g' \
+                -e 's/\\S/Arch Linux/g' \
+                -e 's/\\t/11:11:11/g' \
+                -e 's/\\u/1/g' \
+                -e 's/\\U/1 user/g' \
+                -e 's/\\v/#1 SMP PREEMPT_DYNAMIC Fri, 11 Nov 2011 11:11:11 +0000/g' \
+                -e 's/\\e/\\033/g' \
+                "$3" \
+            )"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
 
-    mime_type="$(file --dereference --brief --mime-type "$3")"
-    case "$mime_type" in
+mime_preview() {
+    case "$5" in
         image/svg*)
-            cache_file=$(mktemp "$4/svg_XXXXXX.png")
-            rsvg-convert \
-                --keep-aspect-ratio \
-                --width 960 "$3" \
-                --output "$cache_file" >/dev/null 2>&1 \
-                && preview_image "$1" "$2" "$cache_file"
+            cache_file="$4/$(printf '%s\n' "$3" | sed 's/\//_/g').png"
+
+            [ -s "$cache_file" ] \
+                || rsvg-convert1 \
+                    --keep-aspect-ratio \
+                    --width 960 "$3" \
+                    --output "$cache_file" >/dev/null 2>&1
+
+            image_preview "$1" "$2" "$cache_file"
+            ;;
+        image/x-xcf)
+            return 1
             ;;
         image/*)
-            preview_image "$1" "$2" "$3"
+            image_preview "$1" "$2" "$3"
             ;;
-        audio/*)
-            cache_file=$(mktemp "$4/audio_XXXXXX.png")
-            ffmpeg -y -i "$3" -c:v copy "$cache_file" >/dev/null 2>&1 \
-                && preview_image "$1" "$2" "$cache_file"
-            ;;
-        video/*)
-            cache_file=$(mktemp "$4/video_XXXXXXX.png")
-            ffmpegthumbnailer -i "$3" -o "$cache_file" -s 0 >/dev/null 2>&1 \
-                && preview_image "$1" "$2" "$cache_file"
+        audio/* | video/*)
+            cache_file="$4/$(printf '%s\n' "$3" | sed 's/\//_/g').png"
+
+            [ -s "$cache_file" ] \
+                || ffmpegthumbnailer -i "$3" -m \
+                    -o "$cache_file" -s 0 >/dev/null 2>&1
+
+            image_preview "$1" "$2" "$cache_file"
             ;;
         font/* | *opentype)
-            cache_file=$(mktemp "$4/font_XXXXXX.png")
-            convert -size '960x960' xc:'#000000' \
-                -font "$3" \
-                -fill '#cccccc' \
-                -gravity Center \
-                -pointsize 72 \
-                -annotate +0+0 "$( \
-                    printf "%s" \
-                        'AÄBCDEFGHIJKLMN\n' \
-                        'OÖPQRSẞTUÜVWXYZ\n' \
-                        'aäbcdefghijklmn\n' \
-                        'oöpqrsßtuüvwxyz\n' \
-                        '1234567890,.*/+-=\%\n' \
-                        '~!?@#§$&(){}[]<>;:' \
-                )" \
-                -font '' \
-                -fill '#4185d7' \
-                -gravity SouthWest \
-                -pointsize 24 \
-                -annotate +0+0 "$( \
-                    fc-list \
-                        | grep "$3" \
-                        | cut -d ':' -f2 \
-                        | sed 's/^ //g' \
-                        | uniq
-                )" \
-                -flatten "$cache_file" >/dev/null 2>&1 \
-                    && preview_image "$1" "$2" "$cache_file"
+            cache_file="$4/$(printf '%s\n' "$3" | sed 's/\//_/g').png"
+
+            [ -s "$cache_file" ] \
+                || convert -size '960x960' xc:'#000000' \
+                    -font "$3" \
+                    -fill '#cccccc' \
+                    -gravity Center \
+                    -pointsize 72 \
+                    -annotate +0+0 "$( \
+                        printf "%s" \
+                            'AÄBCDEFGHIJKLMN\n' \
+                            'OÖPQRSẞTUÜVWXYZ\n' \
+                            'aäbcdefghijklmn\n' \
+                            'oöpqrsßtuüvwxyz\n' \
+                            '1234567890,.*/+-=\%\n' \
+                            '~!?@#§$&(){}[]<>;:' \
+                    )" \
+                    -font '' \
+                    -fill '#4185d7' \
+                    -gravity SouthWest \
+                    -pointsize 24 \
+                    -annotate +0+0 "$( \
+                        fc-list \
+                            | grep "$3" \
+                            | cut -d ':' -f2 \
+                            | sed 's/^ //g' \
+                            | uniq \
+                    )" \
+                    -flatten "$cache_file" >/dev/null 2>&1
+
+            image_preview "$1" "$2" "$cache_file"
             ;;
         */pdf)
-            cache_file=$(mktemp "$4/pdf_XXXXXX.png")
-            pdftoppm -f 1 -l 1 \
-                -scale-to-x 960 \
-                -scale-to-y -1 \
-                -singlefile \
-                -png \
-                "$3" "${cache_file%.*}" >/dev/null 2>&1 \
-                    && preview_image "$1" "$2" "$cache_file"
+            cache_file="$4/$(printf '%s\n' "$3" | sed 's/\//_/g').png"
+
+            [ -s "$cache_file" ] \
+                || pdftoppm -f 1 -l 1 \
+                    -scale-to-x 960 \
+                    -scale-to-y -1 \
+                    -singlefile \
+                    -png \
+                    "$3" "${cache_file%.*}" >/dev/null 2>&1
+
+            image_preview "$1" "$2" "$cache_file"
             ;;
         */vnd.oasis.opendocument* \
             | */vnd.openxmlformats-officedocument* \
             | *ms-excel | *msword | *mspowerpoint | */rtf)
-                cache_file=$(mktemp "$4/office_XXXXXX.png")
-                file_name="$(basename "${3%.*}")"
-                cache_dir="$4/"
-                libreoffice \
-                    --convert-to png "$3" \
-                    --outdir "$cache_dir" >/dev/null 2>&1 \
-                        && mv "$cache_dir$file_name.png" "$cache_file" \
-                        && preview_image "$1" "$2" "$cache_file"
+                cache_file="$4/$(printf '%s\n' "$3" | sed 's/\//_/g').png"
+
+                [ -s "$cache_file" ] \
+                    || (libreoffice \
+                            --convert-to png "$3" \
+                            --outdir "$4/" >/dev/null 2>&1 \
+                        && mv "$4/$(basename "${3%.*}").png" "$cache_file")
+
+                image_preview "$1" "$2" "$cache_file"
             ;;
         */csv)
             column --separator '	;,' --table "$3"
@@ -189,14 +230,18 @@ preview() {
             highlight "$3"
             ;;
         *)
-            preview_fallback "$3" "$mime_type"
+            return 1
             ;;
-    esac \
-        || preview_fallback "$3" "$mime_type"
+    esac
+}
 
-    # remove cache file
-    [ -n "$cache_file" ] \
-        && rm -f "$cache_file"
+fallback_preview() {
+    printf "##### File Type Classification #####\n"
+    printf "MIME-Type: %s\n" "$2"
+    file --dereference --brief "$1"
+    printf "\n##### Exif information #####\n"
+    exiftool "$1"
+    return 0
 }
 
 case $1 in
@@ -206,6 +251,9 @@ case $1 in
         ;;
     --preview)
         shift
+
+        # file identification
+        mime_type="$(file --dereference --brief --mime-type "$1")"
 
         # preview pane calculation
         max_width=$((font_width * (COLUMNS - 1)))
@@ -218,7 +266,12 @@ case $1 in
         preview_height=$((max_height * preview_height / 100 - padding_height))
 
         # preview file
-        preview "$preview_width" "$preview_height" "$1" "$2"
+        clear_preview_pane "$preview_width" "$preview_height"
+        extension_preview "$preview_width" "$preview_height"\
+                "$1" \
+            || mime_preview "$preview_width" "$preview_height" \
+                "$1" "$2" "$mime_type" \
+            || fallback_preview "$1" "$mime_type"
         ;;
     *)
         cache_folder=$(mktemp -t -d "fzf_find_cache.XXXXXX")
@@ -232,9 +285,10 @@ case $1 in
                 --preview-window "up:$preview_height%" \
                 --preview "$0 --preview {} $cache_folder"
 
-        # move find exit status
+        # move exit status after cache deletion
         error=$?
-        rm -rf "$cache_folder"
+        [ -d "$cache_folder" ] \
+            && rm -rf "$cache_folder"
         exit $error
         ;;
 esac
