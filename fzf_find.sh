@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-05T22:20:18+0200
+# date:   2024-06-06T21:51:00+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -28,6 +28,22 @@ help="$script [-h/--help] -- script to find files with w3m image preview
     $script
     $script $HOME/Pictures"
 
+clear_preview_pane() {
+    printf '6;%d;%d;%d;%d\n4;\n3;' \
+                "$font_width" \
+                "$font_height" \
+                "$(($1 + 2))" \
+                "$(($2 + 2))" \
+            | "$w3mimgdisplay" 2>/dev/null \
+        || return
+
+    # mitigate w3mimgdisplay newline
+    printf "\033[2J"
+
+    # mitigate horizontal black bars
+    sleep .2
+}
+
 image_preview() {
     width=$1
     height=$2
@@ -36,7 +52,7 @@ image_preview() {
     image_dimensions=$(printf '5;%s' "$3" | $w3mimgdisplay) 2>/dev/null
     image_width=$(printf '%s' "$image_dimensions" | cut -d' ' -f1)
     image_height=$(printf '%s' "$image_dimensions" | cut -d' ' -f2)
-    [ "${image_width:-0}" -gt 0 ] && [ "${image_height:-0}" -gt 0 ] || return 1
+    [ "${image_width:-0}" -gt 0 ] && [ "${image_height:-0}" -gt 0 ] || return
 
     [ "$image_height" -gt "$height" ] \
         && width=$((image_width * height / image_height)) \
@@ -57,22 +73,6 @@ image_preview() {
             "$height" \
             "$3" \
         | $w3mimgdisplay
-}
-
-clear_preview_pane() {
-    printf '6;%d;%d;%d;%d\n4;\n3;' \
-                "$font_width" \
-                "$font_height" \
-                "$(($1 + 2))" \
-                "$(($2 + 2))" \
-            | "$w3mimgdisplay" 2>/dev/null \
-        || return
-
-    # mitigate w3mimgdisplay newline
-    printf "\033[2J"
-
-    # mitigate horizontal black bars
-    sleep .2
 }
 
 extension_preview() {
@@ -109,6 +109,22 @@ extension_preview() {
                 -e 's/\\e/\\033/g' \
                 "$3" \
             )"
+            ;;
+        gpg | asc)
+            pass_preview() {
+                printf "%s\n" "$1" | head -n 4 | sed '1 s/^.*$/***/' \
+                    && [ "$(printf "%s\n" "$1" | wc -l)" -gt 4 ] \
+                    && printf "\n***"
+
+                return 0
+            }
+
+            printf '%s\n' "$(cd "$(dirname "$3")" && pwd -P)/$(basename "$3")" \
+                | grep -q "^${PASSWORD_STORE_DIR-$HOME/.password-store}" \
+                    && pass_preview "$(gpg --decrypt "$3" 2>/dev/null)" \
+                    && return
+
+            gpg --decrypt "$3" 2>/dev/null
             ;;
         *)
             return 1
@@ -247,7 +263,7 @@ fallback_preview() {
 case $1 in
     -h | --help)
         printf "%s\n" "$help"
-        exit 0
+        exit
         ;;
     --preview)
         shift
