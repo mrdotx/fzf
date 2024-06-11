@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-10T07:19:54+0200
+# date:   2024-06-10T22:19:46+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -16,6 +16,13 @@ font_width=10       # in pixel
 font_height=19      # in pixel
 padding_width=2     # in cursor
 padding_height=2    # in cursor
+# multiplexer padding in pixel
+case "$TERM" in
+    tmux* | screen*)
+        multiplexer_height=$((font_height * 50 / 100))
+        multiplexer_width=$((font_width * 50 / 100))
+        ;;
+esac
 
 # help
 script=$(basename "$0")
@@ -31,12 +38,12 @@ help="$script [-h/--help] -- script to find files with w3m image/picture preview
     $script $HOME/Pictures"
 
 preview_pane() {
-    width=$1
-    height=$2
-    indicator_file="$3/.text"
+    width=$preview_width
+    height=$preview_height
+    indicator_file="$cache_folder/.text"
 
     # if the current or last preview is a image preview
-    if { [ -n "$4" ] || [ ! -e "$indicator_file" ]; }; then
+    if { [ -n "$1" ] || [ ! -e "$indicator_file" ]; }; then
         # clear preview pane
         printf "6;%d;%d;%d;%d\n4;\n3;" \
                     "$((font_width * padding_width))" \
@@ -46,39 +53,45 @@ preview_pane() {
                 | "$w3mimgdisplay" >/dev/null 2>&1 \
             || return
 
-        # mitigate partial previews (fill preview pane with newlines and wait)
-        while [ "${i:-0}" -lt "$((height / font_height + padding_height * 2))" ]; do
-            printf "\n"
-            i=$((i+1))
-        done
+        # image title
+        image_size=$(printf "5;%s" "$1" | "$w3mimgdisplay" 2>/dev/null)
+        image_width=${image_size%% *}
+        image_height=${image_size##* }
+        [ -n "$image_size" ] \
+            && printf "%b%sx%s · %s · %s%b\n" \
+                "\033[37m" \
+                "$image_width" \
+                "$image_height" \
+                "$(du -Hh "$source_file" | cut -f1)" \
+                "$(date '+%d.%m.%Y %H:%M' -r "$source_file")" \
+                "\033[0m"
+
+        # mitigate partial previews
         sleep .2
     fi
 
-    # if the current preview is a text preview, create indicator file
-    [ -z "$4" ] && [ ! -e "$indicator_file" ] \
+    # if the current preview is text, create indicator file
+    [ -z "$1" ] && [ ! -e "$indicator_file" ] \
         && touch "$indicator_file"
 
-    # if the current preview is a text preview, clear newlines and return
-    [ -z "$4" ] \
+    # if the current preview is text, clear newlines and return
+    [ -z "$1" ] \
         && printf "\033[2J" \
         && return 0
 
-    # if the current preview is a image preview, remove indicator file
+    # if the current preview is a image, remove indicator file
     [ -e "$indicator_file" ] \
         && rm -f "$indicator_file"
 
-    # calculate image dimensions
-    image_dimensions=$(printf "5;%s" "$4" | "$w3mimgdisplay" 2>/dev/null)
-    image_width=${image_dimensions%% *}
-    image_height=${image_dimensions##* }
+    # calculate preview image dimensions
     [ "${image_width:-0}" -gt 0 ] && [ "${image_height:-0}" -gt 0 ] || return
 
     [ "$image_height" -gt "$height" ] \
         && width=$((image_width * height / image_height)) \
         || width=$image_width
 
-    [ "$width" -gt "$1" ] \
-        && width=$1
+    [ "$width" -gt "$preview_width" ] \
+        && width=$preview_width
 
     [ "$image_width" -gt "$width" ] \
         && height=$((image_height * width / image_width)) \
@@ -90,23 +103,23 @@ preview_pane() {
             "$((font_height * padding_height))" \
             "$width" \
             "$height" \
-            "$4" \
+            "$1" \
         | $w3mimgdisplay >/dev/null 2>&1
 }
 
 extension_preview() {
-    case "$5" in
+    case "$file_extension" in
         7z | a | alz | apk | arj | bz | bz2 | bzip2 | cab | cb7 | cbt | chm \
             | chw | cpio | deb | dmg | gz | gzip | hxs | iso | jar | lha | lz \
             | lzh | lzma | lzo | msi | pkg | rar | rpm | swm | tar | taz | tbz \
             | tbz2 | tgz | tlz | txz | tz2 | tzo | tzst | udf | war | wim | xar \
             | xpi | xz | z | zip | zst)
-                preview_pane "$1" "$2" "$4"
+                preview_pane
                 # requires compressor.sh (https://github.com/mrdotx/shell)
-                compressor.sh --list "$3"
+                compressor.sh --list "$source_file"
             ;;
         issue)
-            preview_pane "$1" "$2" "$4"
+            preview_pane
             printf "%b\nhost login: _" "$(sed \
                 -e 's/\\4{/INTERFACE{/g' \
                 -e 's/\\4/11.11.11.11/g' \
@@ -128,25 +141,29 @@ extension_preview() {
                 -e 's/\\U/1 user/g' \
                 -e 's/\\v/#1 SMP PREEMPT_DYNAMIC Fri, 11 Nov 2011 11:11:11 +0000/g' \
                 -e 's/\\e/\\033/g' \
-                "$3" \
+                "$source_file" \
             )"
             ;;
         gpg | asc)
             pass_preview() {
-                printf "%s\n" "$1" | head -n 4 | sed '1 s/^.*$/***/' \
-                    && [ "$(printf "%s\n" "$1" | wc -l)" -gt 4 ] \
+                printf "%s\n" "$decrypted_file" | head -n 4 \
+                        | sed '1 s/^.*$/***/' \
+                    && [ "$(printf "%s\n" "$decrypted_file" | wc -l)" -gt 4 ] \
                     && printf "\n***"
 
-                return 0
+                exit 0
             }
 
-            preview_pane "$1" "$2" "$4"
-            printf "%s\n" "$(cd "$(dirname "$3")" && pwd -P)/$(basename "$3")" \
-                | grep -q "^${PASSWORD_STORE_DIR-$HOME/.password-store}" \
-                    && pass_preview "$(gpg --decrypt "$3" 2>/dev/null)" \
-                    && exit
+            decrypted_file=$(gpg --decrypt "$source_file" 2>/dev/null) \
+                || return
 
-            gpg --decrypt "$3" 2>/dev/null
+            preview_pane
+            printf "%s\n" "$(cd "$(dirname "$source_file")" \
+                    && pwd -P)/$(basename "$source_file")" \
+                | grep -q "^${PASSWORD_STORE_DIR-$HOME/.password-store}" \
+                    && pass_preview
+
+            printf "%s\n" "$decrypted_file"
             ;;
         *)
             return 1
@@ -156,39 +173,42 @@ extension_preview() {
 }
 
 mime_preview() {
-    case "$5" in
+    case "$mime_type" in
         image/svg*)
-            cache_file="$4/$(printf "%s\n" "$3" | sed 's/\//_/g').png"
+            cache_file="$cache_folder/$(printf "%s\n" "$source_file" \
+                | sed 's/\//_/g').png"
 
             [ -s "$cache_file" ] \
                 || rsvg-convert \
                     --keep-aspect-ratio \
-                    --width 960 "$3" \
+                    --width 960 "$source_file" \
                     --output "$cache_file" >/dev/null 2>&1
 
-            preview_pane "$1" "$2" "$4" "$cache_file"
+            preview_pane "$cache_file"
             ;;
-        image/x-xcf)
+        image/x-xcf | image/x-tga)
             return 1
             ;;
         image/*)
-            preview_pane "$1" "$2" "$4" "$3"
+            preview_pane "$source_file"
             ;;
         audio/* | video/*)
-            cache_file="$4/$(printf "%s\n" "$3" | sed 's/\//_/g').png"
+            cache_file="$cache_folder/$(printf "%s\n" "$source_file" \
+                | sed 's/\//_/g').png"
 
             [ -s "$cache_file" ] \
-                || ffmpegthumbnailer -i "$3" \
+                || ffmpegthumbnailer -i "$source_file" \
                     -o "$cache_file" -s0 >/dev/null 2>&1
 
-            preview_pane "$1" "$2" "$4" "$cache_file"
+            preview_pane "$cache_file"
             ;;
         font/* | *opentype)
-            cache_file="$4/$(printf "%s\n" "$3" | sed 's/\//_/g').png"
+            cache_file="$cache_folder/$(printf "%s\n" "$source_file" \
+                | sed 's/\//_/g').png"
 
             [ -s "$cache_file" ] \
                 || convert -size '960x960' xc:'#000000' \
-                    -font "$3" \
+                    -font "$source_file" \
                     -fill '#cccccc' \
                     -gravity Center \
                     -pointsize 72 \
@@ -207,17 +227,18 @@ mime_preview() {
                     -pointsize 24 \
                     -annotate +0+0 "$( \
                         fc-list \
-                            | grep "$3" \
+                            | grep "$source_file" \
                             | cut -d ':' -f2 \
                             | sed 's/^ //g' \
                             | uniq \
                     )" \
                     -flatten "$cache_file" >/dev/null 2>&1
 
-            preview_pane "$1" "$2" "$4" "$cache_file"
+            preview_pane "$cache_file"
             ;;
         */pdf)
-            cache_file="$4/$(printf "%s\n" "$3" | sed 's/\//_/g').png"
+            cache_file="$cache_folder/$(printf "%s\n" "$source_file" \
+                | sed 's/\//_/g').png"
 
             [ -s "$cache_file" ] \
                 || pdftoppm -f 1 -l 1 \
@@ -225,14 +246,15 @@ mime_preview() {
                     -scale-to-y -1 \
                     -singlefile \
                     -png \
-                    "$3" "${cache_file%.*}" >/dev/null 2>&1
+                    "$source_file" "${cache_file%.*}" >/dev/null 2>&1
 
-            preview_pane "$1" "$2" "$4" "$cache_file"
+            preview_pane "$cache_file"
             ;;
         */vnd.oasis.opendocument* \
             | */vnd.openxmlformats-officedocument* \
             | *ms-excel | *msword | *mspowerpoint | */rtf)
-                cache_file="$4/$(printf "%s\n" "$3" | sed 's/\//_/g').png"
+                cache_file="$cache_folder/$(printf "%s\n" "$source_file" \
+                    | sed 's/\//_/g').png"
 
                 [ -s "$cache_file" ] \
                     || (libreoffice \
@@ -243,19 +265,20 @@ mime_preview() {
                                                         "type":"string",
                                                         "value":"1"
                                                     }
-                                            }' "$3" \
-                            --outdir "$4/" >/dev/null 2>&1 \
-                        && mv "$4/$(basename "${3%.*}").png" "$cache_file")
+                                            }' "$source_file" \
+                            --outdir "$cache_folder/" >/dev/null 2>&1 \
+                        && mv "$cache_folder/$(basename "${source_file%.*}").png" \
+                            "$cache_file")
 
-                preview_pane "$1" "$2" "$4" "$cache_file"
+                preview_pane "$cache_file"
             ;;
         */csv)
-            preview_pane "$1" "$2" "$4"
-            column --separator '	;,' --table "$3"
+            preview_pane
+            column --separator '	;,' --table "$source_file"
             ;;
         *sqlite3)
-            preview_pane "$1" "$2" "$4"
-            sqlite3 -readonly -header -column "$3" \
+            preview_pane
+            sqlite3 -readonly -header -column "$source_file" \
                 "SELECT name, type
                  FROM sqlite_master
                  WHERE type IN ('table','view')
@@ -263,24 +286,24 @@ mime_preview() {
                  ORDER BY 1;"
             ;;
         */*html*)
-            preview_pane "$1" "$2" "$4"
-            w3m -dump "$3"
+            preview_pane
+            w3m -dump "$source_file"
             ;;
         */x-bittorrent)
-            preview_pane "$1" "$2" "$4"
-            aria2c --show-files "$3"
+            preview_pane
+            aria2c --show-files "$source_file"
             ;;
         */x-executable | */x-pie-executable | */x-sharedlib | */x-object)
-            preview_pane "$1" "$2" "$4"
-            readelf --wide --demangle --all "$3"
+            preview_pane
+            readelf --wide --demangle --all "$source_file"
             ;;
         text/troff)
-            preview_pane "$1" "$2" "$4"
-            man "$3"
+            preview_pane
+            man "$source_file"
             ;;
         text/* | */javascript | */json | */xml | */x-wine-extension-ini)
-            preview_pane "$1" "$2" "$4"
-            highlight "$3"
+            preview_pane
+            highlight "$source_file"
             ;;
         *)
             return 1
@@ -290,13 +313,13 @@ mime_preview() {
 }
 
 fallback_preview() {
-    preview_pane "$1" "$2" "$4"
+    preview_pane
     printf "##### File Type Classification #####\n"
-    printf "MIME-Type: %s\n" "$5"
-    file --dereference --brief "$3"
+    printf "MIME-Type: %s\n" "$mime_type"
+    file --dereference --brief "$source_file"
     printf "\n##### Exif information #####\n"
-    exiftool "$3" \
-        && exit 0
+    exiftool "$source_file"
+    exit 0
 }
 
 case $1 in
@@ -306,27 +329,29 @@ case $1 in
         ;;
     --preview)
         shift
+        source_file="$1"
+        cache_folder="$2"
 
         # file classification
-        mime_type="$(file --dereference --brief --mime-type "$1")"
-        file_extension="$(printf "%s" "${1##*.}" | tr '[:upper:]' '[:lower:]')"
+        mime_type="$(file --dereference --brief --mime-type "$source_file")"
+        file_extension="$(printf "%s" "${source_file##*.}" \
+            | tr '[:upper:]' '[:lower:]')"
 
         # preview pane calculation
-        # max width - padding width
-        preview_width=$((font_width * (COLUMNS - 1) \
-            - font_width * padding_width * 2))
-        # max height * preview_height (percent) - padding height
-        preview_height=$((font_height * (LINES - 1) \
+        # max width - padding width - multiplexer width
+        preview_width=$((font_width * COLUMNS \
+            - font_width * padding_width * 2
+            - multiplexer_width))
+        # max height * preview_height - padding height - multiplexer width
+        preview_height=$((font_height * LINES \
             * preview_height / 100 \
-            - font_height * padding_height * 2))
+            - font_height * padding_height * 2
+            - multiplexer_height))
 
         # preview file
-        extension_preview "$preview_width" "$preview_height" \
-            "$1" "$2" "$file_extension"
-        mime_preview "$preview_width" "$preview_height" \
-            "$1" "$2" "$mime_type"
-        fallback_preview "$preview_width" "$preview_height" \
-            "$1" "$2" "$mime_type"
+        extension_preview
+        mime_preview
+        fallback_preview
         ;;
     *)
         cache_folder=$(mktemp -t -d "fzf_find_cache.XXXXXX")
