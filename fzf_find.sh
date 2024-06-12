@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-10T22:19:46+0200
+# date:   2024-06-11T20:33:47+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -38,27 +38,41 @@ help="$script [-h/--help] -- script to find files with w3m image/picture preview
     $script $HOME/Pictures"
 
 preview_pane() {
-    width=$preview_width
-    height=$preview_height
     indicator_file="$cache_folder/.text"
 
-    # if the current or last preview is a image preview
-    if { [ -n "$1" ] || [ ! -e "$indicator_file" ]; }; then
-        # clear preview pane
-        printf "6;%d;%d;%d;%d\n4;\n3;" \
+    # if the current or last preview is an image, clear the preview pane
+    { [ -n "$1" ] || [ ! -e "$indicator_file" ]; } \
+        && printf "6;%d;%d;%d;%d\n4;\n3;" \
                     "$((font_width * padding_width))" \
                     "$((font_height * padding_height))" \
-                    "$((width + 2))" \
-                    "$((height + 2))" \
+                    "$((preview_width + 2))" \
+                    "$((preview_height + 2))" \
                 | "$w3mimgdisplay" >/dev/null 2>&1 \
-            || return
+        || return
 
-        # image title
-        image_size=$(printf "5;%s" "$1" | "$w3mimgdisplay" 2>/dev/null)
-        image_width=${image_size%% *}
-        image_height=${image_size##* }
-        [ -n "$image_size" ] \
-            && printf "%b%sx%s · %s · %s%b\n" \
+    # go back if the current preview is not an image
+    case "$1" in
+        '')
+            # create indicator file, if not exists
+            [ ! -e "$indicator_file" ] \
+                && touch "$indicator_file"
+
+            return
+            ;;
+        *)
+            # remove indicator file, if exists
+            [ -e "$indicator_file" ] \
+                && rm -f "$indicator_file"
+
+            # determine image sizes
+            image_size=$(printf "5;%s" "$1" | "$w3mimgdisplay" 2>/dev/null)
+            image_width=${image_size%% *}
+            image_height=${image_size##* }
+            [ "${image_width:-0}" -gt 0 ] && [ "${image_height:-0}" -gt 0 ] \
+                || return
+
+            # generate image title for the preview
+            printf "%b%sx%s · %s · %s%b\n" \
                 "\033[37m" \
                 "$image_width" \
                 "$image_height" \
@@ -66,45 +80,32 @@ preview_pane() {
                 "$(date '+%d.%m.%Y %H:%M' -r "$source_file")" \
                 "\033[0m"
 
-        # mitigate partial previews
-        sleep .2
-    fi
+            # calculate image dimensions for the preview
+            width=$preview_width
+            height=$preview_height
 
-    # if the current preview is text, create indicator file
-    [ -z "$1" ] && [ ! -e "$indicator_file" ] \
-        && touch "$indicator_file"
+            [ "$image_height" -gt "$height" ] \
+                && width=$((image_width * height / image_height)) \
+                || width=$image_width
 
-    # if the current preview is text, clear newlines and return
-    [ -z "$1" ] \
-        && printf "\033[2J" \
-        && return 0
+            [ "$width" -gt "$preview_width" ] \
+                && width=$preview_width
 
-    # if the current preview is a image, remove indicator file
-    [ -e "$indicator_file" ] \
-        && rm -f "$indicator_file"
+            [ "$image_width" -gt "$width" ] \
+                && height=$((image_height * width / image_width)) \
+                || height=$image_height
 
-    # calculate preview image dimensions
-    [ "${image_width:-0}" -gt 0 ] && [ "${image_height:-0}" -gt 0 ] || return
-
-    [ "$image_height" -gt "$height" ] \
-        && width=$((image_width * height / image_height)) \
-        || width=$image_width
-
-    [ "$width" -gt "$preview_width" ] \
-        && width=$preview_width
-
-    [ "$image_width" -gt "$width" ] \
-        && height=$((image_height * width / image_width)) \
-        || height=$image_height
-
-    # preview image
-    printf "0;1;%d;%d;%d;%d;;;;;%s\n4;\n3;" \
-            "$((font_width * padding_width))" \
-            "$((font_height * padding_height))" \
-            "$width" \
-            "$height" \
-            "$1" \
-        | $w3mimgdisplay >/dev/null 2>&1
+            # preview image (mitigate partial previews with sleep)
+            sleep .2
+            printf "0;1;%d;%d;%d;%d;;;;;%s\n4;\n3;" \
+                    "$((font_width * padding_width))" \
+                    "$((font_height * padding_height))" \
+                    "$width" \
+                    "$height" \
+                    "$1" \
+                | $w3mimgdisplay >/dev/null 2>&1
+            ;;
+    esac
 }
 
 extension_preview() {
@@ -174,18 +175,6 @@ extension_preview() {
 
 mime_preview() {
     case "$mime_type" in
-        image/svg*)
-            cache_file="$cache_folder/$(printf "%s\n" "$source_file" \
-                | sed 's/\//_/g').png"
-
-            [ -s "$cache_file" ] \
-                || rsvg-convert \
-                    --keep-aspect-ratio \
-                    --width 960 "$source_file" \
-                    --output "$cache_file" >/dev/null 2>&1
-
-            preview_pane "$cache_file"
-            ;;
         image/x-xcf | image/x-tga)
             return 1
             ;;
