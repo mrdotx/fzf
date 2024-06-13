@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-11T20:33:47+0200
+# date:   2024-06-12T08:03:07+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -347,7 +347,7 @@ case $1 in
 
         find "${1:-.}" -type f 2> /dev/null \
             | sed 's/^.\///' \
-            | sort \
+            | sort -fV \
             | fzf -e -m +s \
                 --preview-label="[ $(pwd) ]" \
                 --preview-window "up:$preview_height%" \
