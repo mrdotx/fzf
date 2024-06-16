@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-12T08:03:07+0200
+# date:   2024-06-16T07:28:51+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -35,7 +35,8 @@ help="$script [-h/--help] -- script to find files with w3m image/picture preview
 
   Examples:
     $script
-    $script $HOME/Pictures"
+    $script $HOME/Pictures
+    find $HOME/Pictures/ -type f | $script"
 
 preview_pane() {
     indicator_file="$cache_folder/.text"
@@ -345,9 +346,14 @@ case $1 in
     *)
         cache_folder=$(mktemp -t -d "fzf_find_cache.XXXXXX")
 
-        find "${1:-.}" -type f 2> /dev/null \
-            | sed 's/^.\///' \
-            | sort -fV \
+        # stdin for custom input
+        if [ -p /dev/stdin ]; then
+            cat
+        else
+            find "${1:-.}" -type f 2>/dev/null \
+                | sed 's/^.\///' \
+                | sort -fV
+        fi \
             | fzf -e -m +s \
                 --preview-label="[ $(pwd) ]" \
                 --preview-window "up:$preview_height%" \
