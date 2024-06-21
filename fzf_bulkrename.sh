@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_bulkrename.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-13T22:05:38+0200
+# date:   2024-06-20T17:16:46+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -85,7 +85,7 @@ case $1 in
         find . -maxdepth 1 2> /dev/null \
             | sed -e 1d -e 's/^.\///' \
             | sort -fV \
-            | fzf -e -m +s \
+            | fzf -m +s \
                 | bulkrename
         ;;
 esac

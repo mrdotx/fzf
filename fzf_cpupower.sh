@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-05-15T18:27:21+0200
+# date:   2024-06-20T17:16:50+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -212,7 +212,7 @@ while true; do
 
     # menu
     select=$(get_menu_entries \
-        | fzf -e --cycle \
+        | fzf --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%,wrap" \
             --preview "case {} in

@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_alsa.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-28T21:28:56+0200
+# date:   2024-06-20T17:16:42+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -59,7 +59,7 @@ select=$(aplay -l \
     | grep '^card' \
     | cut -d'[' -f3 \
     | tr -d ']' \
-    | fzf -e --cycle \
+    | fzf --cycle \
         --bind 'focus:transform-preview-label:echo [ {} ]' \
         --preview-window "right:75%,wrap" \
         --preview "printf '%s\n\n**** %s ****\n%s' \

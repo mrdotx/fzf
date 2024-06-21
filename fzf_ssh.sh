@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_ssh.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-27T11:52:25+0200
+# date:   2024-06-20T17:17:17+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -33,7 +33,7 @@ while true; do
                 | cut -d ' ' -f2 \
             )" \
             "edit config" \
-        | fzf -m -e --cycle \
+        | fzf -m --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%" \
             --preview "case {} in

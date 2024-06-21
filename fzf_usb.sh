@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_usb.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2023-05-28T08:59:08+0200
+# date:   2024-06-20T17:17:25+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -89,7 +89,7 @@ select_usb() {
     select=$(lsusb \
         | cut -d ':' -f1 \
         | sort -k 2,4 \
-        | fzf -e --cycle \
+        | fzf --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%,wrap" \
             --preview "printf '%s\n\n' '$device_info' \
@@ -104,7 +104,7 @@ select_usb() {
                     "bind" \
                     "unbind" \
                     "rebind" \
-        | fzf -e --cycle \
+        | fzf --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%,wrap" \
             --preview "printf '%s\n\n' '$device_info' \

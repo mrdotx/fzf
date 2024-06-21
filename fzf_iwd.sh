@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_iwd.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-05-24T23:24:52+0200
+# date:   2024-06-20T17:17:01+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -99,7 +99,7 @@ select_device() {
 
     device=$(printf "%s" "$devices" \
         | awk '{print $1"\n» toggle power"}' \
-        | fzf -e --cycle \
+        | fzf --cycle \
             --preview-window "up:75%" \
             --preview-label "[ device ]" \
             --preview "case {} in
@@ -123,7 +123,7 @@ select_device() {
 select_device_power() {
     device_power=$(printf "%s" "$devices" \
         | awk '{print $1}' \
-        | fzf -e --cycle \
+        | fzf --cycle \
             --preview-window "up:75%" \
             --preview-label "[ toggle power ]" \
             --preview "iwctl device {} show" \
@@ -148,7 +148,7 @@ select_ssid() {
             "» enter ssid" \
             "» disconnect" \
             "» rescan" \
-        | fzf -e --cycle \
+        | fzf --cycle \
             --preview-window "up:75%" \
             --preview-label "[ connect ]" \
             --preview "iwctl known-networks {} show >/dev/null 2>&1 \

@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-16T07:28:51+0200
+# date:   2024-06-20T17:16:53+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -354,7 +354,7 @@ case $1 in
                 | sed 's/^.\///' \
                 | sort -fV
         fi \
-            | fzf -e -m +s \
+            | fzf -m +s \
                 --preview-label="[ $(pwd) ]" \
                 --preview-window "up:$preview_height%" \
                 --preview "$0 --preview {} $cache_folder"

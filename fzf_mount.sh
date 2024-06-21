@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-05-01T08:05:46+0200
+# date:   2024-06-20T17:17:09+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -44,7 +44,7 @@ unmount() {
             select=$(findmnt -ro TARGET \
                 | grep "/mnt\|$mount_dir/" \
                 | sort \
-            | fzf -e \
+            | fzf \
                 --bind 'focus:transform-preview-label:echo [ {} ]' \
                 --preview-window "right:75%" \
                 --preview "findmnt -o TARGET,FSTYPE,SOURCE,SIZE,LABEL -T /{1}" \
@@ -78,7 +78,7 @@ mount_usb() {
                         || $2=="rom"&&$3~"iso"&&$5=="" \
                         || $4=="1,4M"&&$5=="" \
                     {printf "%s\n",$1}' \
-                | fzf -e \
+                | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
                     --preview-window "right:75%" \
                     --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
@@ -145,7 +145,7 @@ mount_rclone() {
                 | grep -v -e "#" -e "^\s*$" \
                 | cut -d ";" -f1 \
                 | tr -d ' ' \
-                | fzf -e \
+                | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
                     --preview-window "right:75%" \
                     --preview "printf \"%s\" \"$rclone_config\" \
@@ -190,7 +190,7 @@ mount_image() {
         *)
             select=$(printf "%s" "$images" \
                 | sed "s#$image_dir/##g" \
-                | fzf -e \
+                | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
                     --preview-window "right:75%" \
                     --preview "printf \"%s\" \"$images\" \
@@ -221,7 +221,7 @@ mount_android() {
         *)
             select=$(simple-mtpfs -l 2>/dev/null \
                 | cut -d ":" -f1 \
-                | fzf -e \
+                | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
                     --preview-window "right:75%" \
                     --preview "simple-mtpfs --device {1} -l 2>/dev/null" \
@@ -256,7 +256,7 @@ activate_superdrive() {
             select="$(lsblk -nrpo "name,type,fstype" \
                 | awk '$2=="rom" \
                     {printf "%s\n",$1}' \
-                | fzf -e \
+                | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
                     --preview-window "right:75%" \
                     --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
@@ -283,7 +283,7 @@ eject_disc() {
             select="$(lsblk -nrpo "name,type,fstype" \
                 | awk '$2=="rom"&&$3~"iso" \
                     {printf "%s\n",$1}' \
-                | fzf -e \
+                | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
                     --preview-window "right:75%" \
                     --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
@@ -314,7 +314,7 @@ case $(printf "%s\n" \
         "mount android" \
         "activate superdrive" \
         "eject disc" \
-    | fzf -e --cycle \
+    | fzf --cycle \
         --bind 'focus:transform-preview-label:echo [ {} ]' \
         --preview-window "right:75%" \
         --preview "case {} in

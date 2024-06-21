@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-03-24T09:53:25+0100
+# date:   2024-06-20T17:17:13+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -204,7 +204,7 @@ pkg_fullpath() {
 
 aur_helper_downgrade() {
     select=$(pkg_files "$1" \
-        | fzf -m -e \
+        | fzf -m \
     )
     [ $? -eq 130 ] \
         && return 130
@@ -223,7 +223,7 @@ ala_files() {
 
 ala_downgrade() {
     ala_pkg=$("$aur_helper" -Qq \
-        | fzf -e \
+        | fzf \
     )
     [ $? -eq 130 ] \
         && return 130
@@ -237,7 +237,7 @@ ala_downgrade() {
     )
 
     select=$(ala_files "$url" "$ala_pkg" \
-        | fzf -e \
+        | fzf \
     )
     [ $? -eq 130 ] \
         && return 130
@@ -249,7 +249,7 @@ ala_downgrade() {
 aur_execute() {
     select=$( \
         eval $aur_helper -"$1" \
-        | fzf -m -e \
+        | fzf -m \
             --preview-window "up:75%:wrap" \
             --preview "$aur_helper -$2 {1}" \
     )
@@ -290,7 +290,7 @@ while true; do
                 "diff package config" \
                 "clear pacman.log" \
                 "clear package cache" \
-        | fzf -e --cycle \
+        | fzf --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%" \
             --preview "case {} in

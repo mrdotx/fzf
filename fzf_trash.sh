@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-12T10:16:02+0200
+# date:   2024-06-20T17:17:21+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -26,7 +26,7 @@ trash_remove() {
     trash-list \
         | cut -d ' ' -f3- \
         | sort -u -fV \
-        | fzf -e -m +s \
+        | fzf -m +s \
             --preview-window "up:75%:wrap" \
             --preview "trash-list | grep {}$" \
         | while IFS= read -r entry; do
@@ -38,7 +38,7 @@ trash_put() {
     find . -maxdepth 1 \
         | sed -e 1d -e 's/^.\///' \
         | sort -fV \
-        | fzf -e -m +s \
+        | fzf -m +s \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%" \
             --preview "highlight {}" \
@@ -54,7 +54,7 @@ while true; do
                 "put to trash" \
                 "remove from trash" \
                 "empty trash" \
-        | fzf -e --cycle \
+        | fzf --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%:wrap" \
             --preview "trash-list" \
