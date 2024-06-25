@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-20T17:16:53+0200
+# date:   2024-06-24T15:58:50+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -197,7 +197,7 @@ mime_preview() {
                 | sed 's/\//_/g').png"
 
             [ -s "$cache_file" ] \
-                || convert -size '960x960' xc:'#000000' \
+                || magick -size '960x960' xc:'#000000' \
                     -font "$source_file" \
                     -fill '#cccccc' \
                     -gravity Center \
