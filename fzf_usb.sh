@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_usb.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-20T17:17:25+0200
+# date:   2024-07-03T08:52:56+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -17,7 +17,7 @@ auth="${EXEC_AS_USER:-sudo}"
 script=$(basename "$0")
 help="$script [-h/--help] -- script to manage usb devices
   Usage:
-    $script [--bind] [--unbind] [--rebind]
+    $script [--bind/--unbind/--rebind]
 
   Settings:
     [--bind]   = try to bind logical device

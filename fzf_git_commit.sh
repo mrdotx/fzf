@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_git_commit.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-20T17:16:58+0200
+# date:   2024-07-03T08:52:05+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -14,7 +14,7 @@ script=$(basename "$0")
 help="$script [-h/--help] -- script to show/checkout commits for files or
                                  reset commits for a repository
   Usage:
-    $script [--log] [--reset] <path/file> [path/file1] [path/file2]
+    $script [--log/--reset] <path/file> [path/file1] [path/file2]
 
   Settings:
     [--log]   = show commit logs
