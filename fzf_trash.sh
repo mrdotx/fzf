@@ -3,11 +3,14 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-20T17:17:21+0200
+# date:   2024-07-09T18:52:25+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
 LANG=C
+
+# config
+edit="$EDITOR"
 
 # help
 script=$(basename "$0")
@@ -47,17 +50,68 @@ trash_put() {
         done
 }
 
+delete_meta_files() {
+    # create cache
+    cache_file=$(mktemp -t delete_metafiles.XXXXXX)
+
+    # create delete script
+    printf "%b" \
+        "#!/bin/sh\n\n" \
+        "# This script will be executed when you close the editor.\n" \
+        "# Please check everything! Clear the file to abort.\n\n" \
+            > "$cache_file"
+
+    find . \( \
+        -name ".DS_Store" \
+        -o -name "._*" \
+        -o -name ".AppleDouble" \
+        -o -name ".AppleDB" \
+        -o -name ".@__thumb" \
+        -o -name ".@__qini" \
+        -o -name ":2e*" \
+        \) -exec printf "trash-put \"{}\"\n" \; \
+            | sed  -e 's/trash-put \".\//trash-put \"/' \
+            | sort -fV >> "$cache_file"
+
+    # check delete script
+    "$edit" "$cache_file"
+
+    # execute delete script
+    chmod 755 "$cache_file"
+    "$cache_file"
+
+    # delete cache
+    [ -f "$cache_file" ] \
+        && rm -f "$cache_file"
+}
+
 while true; do
     # menu
     select=$(printf "%s\n" \
                 "restore from trash" \
                 "put to trash" \
+                "delete meta files" \
                 "remove from trash" \
                 "empty trash" \
         | fzf --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%:wrap" \
             --preview "trash-list" \
+            --preview "case {} in
+                'delete meta files')
+                    printf '» create script to delete meta files like:\n\n'
+                    printf '  %s\n' \
+                        '._*' \
+                        '.AppleDouble' \
+                        '.AppleDB' \
+                        '.@__thumb' \
+                        '.@__qini' \
+                        ':2e*'
+                    ;;
+                *)
+                    trash-list
+                    ;;
+                esac" \
     )
 
     # select executables
@@ -67,6 +121,9 @@ while true; do
             ;;
         "put to trash")
             trash_put
+            ;;
+        "delete meta files")
+            delete_meta_files
             ;;
         "remove from trash")
             trash_remove
