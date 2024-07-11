@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-07-09T18:52:25+0200
+# date:   2024-07-10T20:48:17+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -51,6 +51,9 @@ trash_put() {
 }
 
 delete_meta_files() {
+    # config
+    cmd="trash-put -v"
+
     # create cache
     cache_file=$(mktemp -t delete_metafiles.XXXXXX)
 
@@ -61,16 +64,17 @@ delete_meta_files() {
         "# Please check everything! Clear the file to abort.\n\n" \
             > "$cache_file"
 
-    find . \( \
+    find . \! -path "*/Trash/files/*" \
+        \( \
         -name ".DS_Store" \
-        -o -name "._*" \
-        -o -name ".AppleDouble" \
         -o -name ".AppleDB" \
-        -o -name ".@__thumb" \
+        -o -name ".AppleDouble" \
         -o -name ".@__qini" \
+        -o -name ".@__thumb" \
+        -o -name "._*" \
         -o -name ":2e*" \
-        \) -exec printf "trash-put \"{}\"\n" \; \
-            | sed  -e 's/trash-put \".\//trash-put \"/' \
+        \) -exec printf "$cmd \"{}\"\n" \; \
+            | sed  -e "s/$cmd \".\//$cmd \"/" \
             | sort -fV >> "$cache_file"
 
     # check delete script
@@ -96,17 +100,18 @@ while true; do
         | fzf --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%:wrap" \
-            --preview "trash-list" \
             --preview "case {} in
                 'delete meta files')
                     printf '» create script to delete meta files like:\n\n'
                     printf '  %s\n' \
-                        '._*' \
-                        '.AppleDouble' \
+                        '.DS_Store' \
                         '.AppleDB' \
-                        '.@__thumb' \
+                        '.AppleDouble' \
                         '.@__qini' \
+                        '.@__thumb' \
+                        '._*' \
                         ':2e*'
+                    printf '\n» working directory: %s\n' \"$(pwd)\"
                     ;;
                 *)
                     trash-list
