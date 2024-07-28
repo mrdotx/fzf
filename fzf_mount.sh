@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-20T17:17:09+0200
+# date:   2024-07-27T21:39:37+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -307,6 +307,7 @@ exit_status() {
 
 # menu
 case $(printf "%s\n" \
+        "refresh" \
         "unmount device" \
         "mount usb" \
         "mount rclone" \
@@ -318,6 +319,9 @@ case $(printf "%s\n" \
         --bind 'focus:transform-preview-label:echo [ {} ]' \
         --preview-window "right:75%" \
         --preview "case {} in
+            \"refresh\")
+                lsblk
+                ;;
             \"unmount device\")
                 printf \"%s\" \"$(unmount preview)\"
                 ;;
@@ -341,6 +345,9 @@ case $(printf "%s\n" \
                 ;;
             esac " \
     ) in
+    "refresh")
+        "$0"
+        ;;
     "unmount device")
         unmount \
             || exit_status
