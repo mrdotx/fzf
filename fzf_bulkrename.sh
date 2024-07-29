@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_bulkrename.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-20T17:16:46+0200
+# date:   2024-07-29T07:19:40+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -19,7 +19,7 @@ help="$script [-h/--help] -- script to bulk rename files with a text editor
   Usage:
     $script [--files] <file> [file1] [file2]
 
-  Seetings:
+  Settings:
     [--files] = files to rename
 
   Examples:
