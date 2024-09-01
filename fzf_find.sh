@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-24T15:58:50+0200
+# date:   2024-08-31T07:04:54+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -162,7 +162,7 @@ extension_preview() {
             preview_pane
             printf "%s\n" "$(cd "$(dirname "$source_file")" \
                     && pwd -P)/$(basename "$source_file")" \
-                | grep -q "^${PASSWORD_STORE_DIR-$HOME/.password-store}" \
+                | grep -q "password-store" \
                     && pass_preview
 
             printf "%s\n" "$decrypted_file"
