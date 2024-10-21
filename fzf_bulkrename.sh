@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_bulkrename.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-07-29T07:19:40+0200
+# date:   2024-10-21T08:15:14+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -53,7 +53,7 @@ bulkrename() {
             > "$cache_folder/$script_file"
 
     awk -v cmd="$cmd" 'NR==FNR { a[NR]=$0; next }
-        $0!=a[FNR] { print cmd" \""$0"\"" " \""a[FNR]"\"" }' \
+        $0!=a[FNR] { print cmd" \\\n\t\""$0"\" \\\n\t\""a[FNR]"\"" }' \
         "$cache_folder/$modify_file" "$cache_folder/$original_file" \
             >> "$cache_folder/$script_file"
 
