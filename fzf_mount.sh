@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-07-27T21:39:37+0200
+# date:   2024-10-27T07:20:51+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -136,9 +136,13 @@ mount_rclone() {
 
     case $1 in
         preview)
-            printf "%s" "$rclone_config" \
-                | grep -v -e "^\s*$" \
-                | sed "s/^ *//g"
+            if command -v "rclone" > /dev/null 2>&1; then \
+                printf "%s" "$rclone_config" \
+                    | grep -v -e "^\s*$" \
+                    | sed "s/^ *//g"
+            else
+                printf "==> this does not work without rclone installed\n"
+            fi
             ;;
         *)
             select=$(printf "%s" "$rclone_config" \
@@ -216,10 +220,14 @@ mount_image() {
 mount_android() {
     case $1 in
         preview)
-            simple-mtpfs -l 2>/dev/null
+            if command -v "simple-mtpfs" > /dev/null 2>&1; then \
+                simple-mtpfs --list-devices 2>/dev/null
+            else
+                printf "==> this does not work without simple-mtpfs installed\n"
+            fi
             ;;
         *)
-            select=$(simple-mtpfs -l 2>/dev/null \
+            select=$(simple-mtpfs --list-devices 2>/dev/null \
                 | cut -d ":" -f1 \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
