@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-20T17:17:13+0200
+# date:   2024-11-16T08:12:46+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -237,6 +237,7 @@ ala_downgrade() {
     )
 
     select=$(ala_files "$url" "$ala_pkg" \
+        | sort -Vr \
         | fzf \
     )
     [ $? -eq 130 ] \
