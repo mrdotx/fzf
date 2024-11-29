@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_git_commit.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-07-03T08:52:05+0200
+# date:   2024-11-29T06:19:18+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -37,15 +37,15 @@ git_log() {
 
 git_commit() {
     for entry in "$@"; do
-        commit_id=$(git_log "$entry" \
-            | fzf +s \
-                --preview-window "up:75%" \
-                --preview "git show --color $(printf "{1}")" \
-            | cut -d" " -f1)
-
-        [ -n "$commit_id" ] \
-            && git checkout "$commit_id" "$entry" \
-            && git restore --staged "$entry"
+        [ -f "$entry" ] \
+            && commit_id=$(git_log "$entry" \
+                | fzf +s \
+                    --preview-window "up:75%" \
+                    --preview "git show --color $(printf "{1}")" \
+                | cut -d" " -f1) \
+            && [ -n "$commit_id" ] \
+                && git checkout "$commit_id" "$entry" \
+                && git restore --staged "$entry"
     done
 }
 
@@ -95,9 +95,6 @@ case "$1" in
         git_commit_reset
         ;;
     *)
-        ! [ -f "$1" ] \
-            && exit 1
-
         git_commit "$@"
         ;;
 esac
