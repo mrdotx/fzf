@@ -7,7 +7,7 @@ shell scripts for fzf
 | fzf_alsa.sh       | set the default alsa playback device via asoundrc config file     |
 | fzf_bulkrename.sh | bulk rename files with a text editor                              |
 | fzf_cpupower.sh   | manage cpupower                                                   |
-| fzf_find.sh       | find files with w3m image/picture preview                         |
+| fzf_find.sh       | find files with w3m image preview                                 |
 | fzf_git_commit.sh | show/checkout commits for files or reset commits for a repository |
 | fzf_iwd.sh        | connect to wlan with iwd                                          |
 | fzf_man.sh        | search and open man pages                                         |
