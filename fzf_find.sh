@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-01-08T08:33:28+0100
+# date:   2025-02-16T07:16:45+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -284,9 +284,9 @@ mime_preview() {
         text/troff)
             man "$source_file"
             ;;
-        text/* | message/* | */mbox \
-            | */javascript | */json | */xml \
-            | */x-pem-file | */x-wine-extension-ini | */x-mpegurl)
+        text/* | message/* | */mbox | */javascript | */json | */xml \
+            | */x-pem-file | */x-wine-extension-ini | */x-mpegurl \
+            | */x-avm-export)
                 highlight "$source_file"
             ;;
         *)
