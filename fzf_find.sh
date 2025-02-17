@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-02-16T07:16:45+0100
+# date:   2025-02-17T07:24:18+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -200,10 +200,10 @@ image_preview() {
 extension_preview() {
     case "$file_extension" in
         7z | a | alz | apk | arj | bz | bz2 | bzip2 | cab | cb7 | cbt | chm \
-            | chw | cpio | deb | dmg | gz | gzip | hxs | iso | jar | lha | lz \
-            | lzh | lzma | lzo | msi | pkg | rar | rpm | swm | tar | taz | tbz \
-            | tbz2 | tgz | tlz | txz | tz2 | tzo | tzst | udf | war | wim | xar \
-            | xpi | xz | z | zip | zst)
+            | chw | cpio | deb | dmg | gz | gzip | hxs | img | iso | jar | lha \
+            | lz | lzh | lzma | lzo | msi | pkg | rar | rpm | swm | tar | taz \
+            | tbz | tbz2 | tgz | tlz | txz | tz2 | tzo | tzst | udf | war | wim \
+            | xar | xpi | xz | z | zip | zst)
                 # requires compressor.sh (https://github.com/mrdotx/shell)
                 compressor.sh --list "$source_file"
             ;;
