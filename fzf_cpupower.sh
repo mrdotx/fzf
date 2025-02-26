@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-08-15T05:46:33+0200
+# date:   2025-02-26T06:25:28+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -42,9 +42,10 @@ help="$script [-h/--help] -- script to manage cpupower
 
 # helper functions
 highlight_string() {
+    # color variables
     [ -z "$NO_COLOR" ] \
-        && color="\033[0;94m" \
-        && reset="\033[0m"
+        && reset="\033[0m" \
+        && color="\033[0;94m"
 
     printf "[%b%s%b]" "$color" "$1" "$reset"
 }
