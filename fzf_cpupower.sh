@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-03-16T06:34:08+0100
+# date:   2025-06-03T05:22:03+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -21,6 +21,10 @@ policies_path="/sys/devices/system/cpu/cpufreq"
 governor_path="$policies_path/policy0/scaling_governor"
 epp_available_path="$policies_path/policy0/energy_performance_available_preferences"
 epp_path="$policies_path/policy0/energy_performance_preference"
+
+# sysfs platform profile files
+pp_available_path="/sys/firmware/acpi/platform_profile_choices"
+pp_path="/sys/firmware/acpi/platform_profile"
 
 # help
 script=$(basename "$0")
@@ -91,45 +95,45 @@ cpupower_wrapper() {
 get_governor_info() {
     governor=$(cat "$governor_path")
 
+    printf "» generic scaling governors\n"
     printf "%s\n" \
-        "» generic scaling governors"
-    printf "%s\n%s\n%s\n%s\n%s\n%s\n" \
         "conservative: current load (more gradually than ondemand)" \
         "ondemand: scales cpu frequency according to current load" \
         "userspace: user specified cpu frequency (scaling_setspeed)" \
         "powersave: minimum cpu frequency (scaling_min_freq)" \
         "performance: maximum cpu frequency (scaling_max_freq)" \
         "schedutil: scheduler-driven cpu frequency" \
-            | sed "s/^\b$governor\b/$(highlight_string "$governor")/" \
+            | sed "0,/^\b$governor\b/s/^\b$governor\b/$(highlight_string "$governor")/" \
             | print_table
 
-    printf "\n» available governors\n%s\n" \
-        "$(cpupower_wrapper --governors)" \
-            | sed "s/\b$governor\b/$(highlight_string "$governor")/"
+    printf "\n» available governors\n"
+    cpupower_wrapper --governors \
+        | tr ' ' '\n' \
+        | sed "0,/^\b$governor\b/s/^\b$governor\b/$(highlight_string "$governor")/"
 
-    printf "\n» currently used cpufreq policy\n%s\n" \
-        "$(cpupower_wrapper --policy)" \
-            | sed "s/\"\b$governor\b\"/$(highlight_string "$governor")/"
+    printf "\n» currently used cpufreq policy\n"
+    cpupower_wrapper --policy \
+        | sed "0,/\"\b$governor\b\"/s/\"\b$governor\b\"/$(highlight_string "$governor")/"
 }
 
 get_epp_info() {
     [ -s "$epp_path" ] \
         && epp=$(cat "$epp_path")
 
+    printf "» generic energy performance preferences\n"
     printf "%s\n" \
-        "» generic energy performance preferences"
-    printf "%s\n%s\n%s\n%s\n%s\n" \
-        "default: performance and power are balanced" \
+        "default: balance between performance and energy efficiency" \
         "performance: maximum performance" \
-        "balance_performance: high priority on performance" \
-        "balance_power: power and performance are balanced" \
+        "balance_performance: higher priority on performance" \
+        "balance_power: higher priority on energy efficiency" \
         "power: maximum energy efficiency" \
-            | sed "s/^\b$epp\b/$(highlight_string "$epp")/" \
+            | sed "0,/^\b$epp\b/s/^\b$epp\b/$(highlight_string "$epp")/" \
             | print_table
 
-    printf "\n» available energy performance preferences\n%s\n" \
-        "$(printf "%s" "$epp_available")" \
-            | sed "s/\b$epp\b/$(highlight_string "$epp")/"
+    printf "\n» available energy performance preferences\n"
+    printf "%s\n" "$epp_available" \
+        | tr ' ' '\n' \
+        | sed "0,/^\b$epp\b/s/^\b$epp\b/$(highlight_string "$epp")/"
 }
 
 get_frequency_info() {
@@ -161,6 +165,27 @@ get_frequency_info() {
         "$(cpupower_wrapper --driver)"
 }
 
+get_pp_info() {
+    [ -s "$pp_path" ] \
+        && pp=$(cat "$pp_path")
+
+    printf "» generic platform profiles\n"
+    printf "%s\n" \
+        "low-power: low power consumption" \
+        "cool: cooler operation" \
+        "quiet: quieter operation" \
+        "balanced: balance between low power consumption and performance" \
+        "balanced-performance: balance between performance and low power consumption" \
+        "performance: high performance operation" \
+            | sed "0,/^\b$pp\b/s/^\b$pp\b/$(highlight_string "$pp")/" \
+            | print_table
+
+    printf "\n» available platform profiles\n"
+    printf "%s\n" "$pp_available" \
+        | tr ' ' '\n' \
+        | sed "0,/^\b$pp\b/s/^\b$pp\b/$(highlight_string "$pp")/"
+}
+
 set_governor() {
     [ -n "$1" ] \
         && "$auth" cpupower frequency-set --governor \
@@ -184,6 +209,14 @@ set_frequency() {
         && read -r frequency
     [ -n "$frequency" ] \
         && "$auth" cpupower frequency-set "$2" "$frequency"
+}
+
+set_pp() {
+    [ -n "$1" ] \
+        && printf "Setting pp: " \
+        && printf "%s\n" "$1" \
+            | cut -d' ' -f3 \
+            | "$auth" tee "$pp_path"
 }
 
 exit_status() {
@@ -212,6 +245,9 @@ get_menu_entries() {
             "$(for value in $epp_available; do
                 printf "set epp %s\n" "$value"
             done)" \
+            "$(for value in $pp_available; do
+                printf "set pp %s\n" "$value"
+            done)" \
             "toggle service" \
             "edit config" \
         | sed '/^$/d'
@@ -220,6 +256,8 @@ get_menu_entries() {
 while true; do
     [ -s "$epp_available_path" ] \
         && epp_available=$(cat "$epp_available_path")
+    [ -s "$pp_available_path" ] \
+        && pp_available=$(cat "$pp_available_path")
 
     # menu
     select=$(get_menu_entries \
@@ -235,6 +273,9 @@ while true; do
                     ;;
                 \"set epp\"*)
                     printf \"%s\" \"$(get_epp_info)\"
+                    ;;
+                \"set pp\"*)
+                    printf \"%s\" \"$(get_pp_info)\"
                     ;;
                 \"toggle service\")
                     printf \"%s\" \"$($auth systemctl status $service)\"
@@ -265,6 +306,10 @@ while true; do
             ;;
         "set epp"*)
             set_epp "$select" \
+                || exit_status
+            ;;
+        "set pp"*)
+            set_pp "$select" \
                 || exit_status
             ;;
         "toggle service")
