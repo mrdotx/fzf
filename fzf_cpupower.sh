@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-06-03T05:22:03+0200
+# date:   2025-06-08T05:32:17+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -25,6 +25,11 @@ epp_path="$policies_path/policy0/energy_performance_preference"
 # sysfs platform profile files
 pp_available_path="/sys/firmware/acpi/platform_profile_choices"
 pp_path="/sys/firmware/acpi/platform_profile"
+
+# sysfs battery threshold files
+threshold_path="/sys/devices"
+threshold_start="/power_supply/BAT0/charge_control_start_threshold"
+threshold_end="/power_supply/BAT0/charge_control_end_threshold"
 
 # help
 script=$(basename "$0")
@@ -55,7 +60,7 @@ highlight_string() {
 
 print_table() {
     cat \
-        | column --separator ':' --output-separator ' =' --table
+        | column --separator ':' --output-separator "$1" --table
 }
 
 cpupower_wrapper() {
@@ -71,18 +76,18 @@ cpupower_wrapper() {
                 | cut -d'(' -f1 \
                 | sed -e 's/, /\n/g' -e's/:/: /g' \
                 | awk 'NR>1 {$1=$1;print}' \
-                | print_table
+                | print_table ' ='
             ;;
         --boost)
             printf "%s" "$info" \
                 | awk 'NR>2 {$1=$1;print}' \
-                | print_table
+                | print_table ' ='
             ;;
         --perf)
             printf "%s" "$info" \
                 | awk 'NR>1 {$1=$1;print}' \
                 | sed -e 's/AMD PSTATE //g' -e 's/\. /\n/g' -e 's/Hz\./Hz/g' \
-                | print_table
+                | print_table ' ='
             ;;
         *)
             printf "%s" "$info" \
@@ -104,7 +109,7 @@ get_governor_info() {
         "performance: maximum cpu frequency (scaling_max_freq)" \
         "schedutil: scheduler-driven cpu frequency" \
             | sed "0,/^\b$governor\b/s/^\b$governor\b/$(highlight_string "$governor")/" \
-            | print_table
+            | print_table ' ='
 
     printf "\n» available governors\n"
     cpupower_wrapper --governors \
@@ -128,7 +133,7 @@ get_epp_info() {
         "balance_power: higher priority on energy efficiency" \
         "power: maximum energy efficiency" \
             | sed "0,/^\b$epp\b/s/^\b$epp\b/$(highlight_string "$epp")/" \
-            | print_table
+            | print_table ' ='
 
     printf "\n» available energy performance preferences\n"
     printf "%s\n" "$epp_available" \
@@ -178,7 +183,7 @@ get_pp_info() {
         "balanced-performance: balance between performance and low power consumption" \
         "performance: high performance operation" \
             | sed "0,/^\b$pp\b/s/^\b$pp\b/$(highlight_string "$pp")/" \
-            | print_table
+            | print_table ' ='
 
     printf "\n» available platform profiles\n"
     printf "%s\n" "$pp_available" \
@@ -186,37 +191,68 @@ get_pp_info() {
         | sed "0,/^\b$pp\b/s/^\b$pp\b/$(highlight_string "$pp")/"
 }
 
+get_threshold_info() {
+    # https://www.ifixit.com/News/31716/how-to-care-for-your-laptops-battery-so-it-lasts-longer
+    printf "» recommended battery charge thresholds\n"
+    printf "%s\n" \
+        "description: application: start: end" \
+        "maximum runtime (thinkpad default): on the road: 96: 100" \
+        "minimum lifespan improvement: : 85: 90" \
+        "medium lifespan improvement (tlp default): : 75: 80" \
+        "maximum lifespan improvement: plugged in: 40: 50" \
+            | print_table ' |'
+
+    printf "\n» current battery charge thresholds\n"
+    printf "start (charging below value) = %s\n" "$threshold_start_value"
+    printf "end   (charging above value) = %s\n" "$threshold_end_value"
+}
+
 set_governor() {
     [ -n "$1" ] \
         && "$auth" cpupower frequency-set --governor \
-            "$(printf "%s" "$1" | cut -d' ' -f3)"
+            "$(printf "%s" "$1" | cut -d' ' -f3)" 1>/dev/null
 }
 
 set_epp() {
     [ -n "$1" ] \
         && for policy in $(find "$policies_path" -maxdepth 1 -type d | sed 1d); do
-            printf "Setting epp: "
             printf "%s\n" "$1" \
                 | cut -d' ' -f3 \
-                | "$auth" tee "$policy/energy_performance_preference"
+                | "$auth" tee "$policy/energy_performance_preference" 1>/dev/null
         done
 }
 
 set_frequency() {
-    printf "Frequencies can be passed in Hz, kHz, MHz, GHz, or THz.\n"
-    printf "e.g. 1400MHz, leave blank to return to the menu without changes.\n"
+    printf "%s\n" \
+        "Frequencies can be passed in Hz, kHz, MHz, GHz, or THz (e.g. 1400MHz)." \
+        "Leave blank to avoid making changes."
     printf "\n\r%s to: " "$1" \
         && read -r frequency
-    [ -n "$frequency" ] \
-        && "$auth" cpupower frequency-set "$2" "$frequency"
+    [ -z "$frequency" ] \
+        || "$auth" cpupower frequency-set "$2" "$frequency"
 }
 
 set_pp() {
     [ -n "$1" ] \
-        && printf "Setting pp: " \
         && printf "%s\n" "$1" \
             | cut -d' ' -f3 \
-            | "$auth" tee "$pp_path"
+            | "$auth" tee "$pp_path" 1>/dev/null
+}
+
+set_threshold() {
+    printf "%s\n" \
+        "Specify the value in percent (0-100). " \
+        "Leave blank to avoid making changes."
+    printf "\n\r%s start from %s to: " "$1" "$threshold_start_value" \
+        && read -r threshold_start_value_new
+    printf "\r%s end from %s to: " "$1" "$threshold_end_value" \
+        && read -r threshold_end_value_new
+    [ -z "$threshold_start_value_new" ] \
+        || printf "%s\n" "$threshold_start_value_new" \
+            | "$auth" tee "$threshold_start_path" 1>/dev/null
+    [ -z "$threshold_end_value_new" ] \
+        || printf "%s\n" "$threshold_end_value_new" \
+            | "$auth" tee "$threshold_end_path" 1>/dev/null
 }
 
 exit_status() {
@@ -248,6 +284,9 @@ get_menu_entries() {
             "$(for value in $pp_available; do
                 printf "set pp %s\n" "$value"
             done)" \
+            "$([ -s "$threshold_start_path" ] \
+                && printf "set battery threshold\n"
+                )" \
             "toggle service" \
             "edit config" \
         | sed '/^$/d'
@@ -258,6 +297,12 @@ while true; do
         && epp_available=$(cat "$epp_available_path")
     [ -s "$pp_available_path" ] \
         && pp_available=$(cat "$pp_available_path")
+    threshold_start_path=$(find "$threshold_path" -path "*$threshold_start")
+    [ -s "$threshold_start_path" ] \
+        && threshold_start_value=$(cat "$threshold_start_path")
+    threshold_end_path=$(find "$threshold_path" -path "*$threshold_end")
+    [ -s "$threshold_end_path" ] \
+        && threshold_end_value=$(cat "$threshold_end_path")
 
     # menu
     select=$(get_menu_entries \
@@ -276,6 +321,9 @@ while true; do
                     ;;
                 \"set pp\"*)
                     printf \"%s\" \"$(get_pp_info)\"
+                    ;;
+                \"set battery threshold\")
+                    printf \"%s\" \"$(get_threshold_info)\"
                     ;;
                 \"toggle service\")
                     printf \"%s\" \"$($auth systemctl status $service)\"
@@ -310,6 +358,10 @@ while true; do
             ;;
         "set pp"*)
             set_pp "$select" \
+                || exit_status
+            ;;
+        "set battery threshold")
+            set_threshold "$select" \
                 || exit_status
             ;;
         "toggle service")
