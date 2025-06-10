@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-06-08T05:32:17+0200
+# date:   2025-06-10T06:11:21+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -25,6 +25,9 @@ epp_path="$policies_path/policy0/energy_performance_preference"
 # sysfs platform profile files
 pp_available_path="/sys/firmware/acpi/platform_profile_choices"
 pp_path="/sys/firmware/acpi/platform_profile"
+
+# sysfs frequency boost file
+boost_path="/sys/devices/system/cpu/cpufreq/boost"
 
 # sysfs battery threshold files
 threshold_path="/sys/devices"
@@ -55,19 +58,25 @@ highlight_string() {
     reset="\033[0m"
     blue="\033[0;94m"
 
-    printf "[%b%s%b]" "$blue" "$1" "$reset"
+    printf "[%b%s%b]" "$blue" "$@" "$reset"
 }
 
 print_table() {
-    cat \
-        | column --separator ':' --output-separator "$1" --table
+    column --separator ':' --output-separator "$1" --table
+}
+
+exit_status() {
+    printf "%s" \
+        "The command exited with status $?. " \
+        "Press ENTER to continue."
+    read -r select
 }
 
 cpupower_wrapper() {
     info=$("$auth" cpupower frequency-info "$@")
 
     [ "$(printf "%s" "$info" | wc -l)" -lt 1 ] \
-        && printf "Cannot determine or is not supported." \
+        && printf "Cannot determine or is not supported.\n" \
         && return
 
     case "$1" in
@@ -85,9 +94,10 @@ cpupower_wrapper() {
             ;;
         --perf)
             printf "%s" "$info" \
-                | awk 'NR>1 {$1=$1;print}' \
-                | sed -e 's/AMD PSTATE //g' -e 's/\. /\n/g' -e 's/Hz\./Hz/g' \
-                | print_table ' ='
+                | awk 'NR>2 {$1=$1;print}' \
+                | sed 's/\. /\n/g' \
+                | print_table ' =' \
+                | sed 's/\.$//g'
             ;;
         *)
             printf "%s" "$info" \
@@ -98,7 +108,7 @@ cpupower_wrapper() {
 }
 
 get_governor_info() {
-    governor=$(cat "$governor_path")
+    highlight_governor=$(highlight_string "$governor")
 
     printf "» generic scaling governors\n"
     printf "%s\n" \
@@ -108,22 +118,26 @@ get_governor_info() {
         "powersave: minimum cpu frequency (scaling_min_freq)" \
         "performance: maximum cpu frequency (scaling_max_freq)" \
         "schedutil: scheduler-driven cpu frequency" \
-            | sed "0,/^\b$governor\b/s/^\b$governor\b/$(highlight_string "$governor")/" \
+            | sed "0,/^\b$governor\b/s/^\b$governor\b/$highlight_governor/" \
             | print_table ' ='
 
     printf "\n» available governors\n"
     cpupower_wrapper --governors \
         | tr ' ' '\n' \
-        | sed "0,/^\b$governor\b/s/^\b$governor\b/$(highlight_string "$governor")/"
+        | sed "0,/^\b$governor\b/s/^\b$governor\b/$highlight_governor/"
 
     printf "\n» currently used cpufreq policy\n"
     cpupower_wrapper --policy \
-        | sed "0,/\"\b$governor\b\"/s/\"\b$governor\b\"/$(highlight_string "$governor")/"
+        | sed "0,/\"\b$governor\b\"/s/\"\b$governor\b\"/$highlight_governor/"
+
+    printf "\n» used cpu kernel driver\n"
+    cpupower_wrapper --driver
 }
 
 get_epp_info() {
     [ -s "$epp_path" ] \
-        && epp=$(cat "$epp_path")
+        && epp=$(cat "$epp_path") \
+        && highlight_epp=$(highlight_string "$epp")
 
     printf "» generic energy performance preferences\n"
     printf "%s\n" \
@@ -132,47 +146,19 @@ get_epp_info() {
         "balance_performance: higher priority on performance" \
         "balance_power: higher priority on energy efficiency" \
         "power: maximum energy efficiency" \
-            | sed "0,/^\b$epp\b/s/^\b$epp\b/$(highlight_string "$epp")/" \
+            | sed "0,/^\b$epp\b/s/^\b$epp\b/$highlight_epp/" \
             | print_table ' ='
 
     printf "\n» available energy performance preferences\n"
     printf "%s\n" "$epp_available" \
         | tr ' ' '\n' \
-        | sed "0,/^\b$epp\b/s/^\b$epp\b/$(highlight_string "$epp")/"
-}
-
-get_frequency_info() {
-    printf "» current cpu frequency\n%s\n" \
-        "$(cpupower_wrapper --freq --human)"
-
-    printf "\n» maximum cpu frequency\n%s\n" \
-        "$(cpupower_wrapper --hwlimits --human)"
-
-    printf "\n» boost state support\n%s\n" \
-        "$(cpupower_wrapper --boost)"
-
-    printf "\n» cpu frequency statistics\n%s\n" \
-        "$(cpupower_wrapper --stats --human)"
-
-    printf "\n» cpus run at the same hardware frequency\n%s\n" \
-        "$(cpupower_wrapper --related-cpus)"
-
-    printf "\n» cpus need to have their frequency coordinated by software\n%s\n" \
-        "$(cpupower_wrapper --affected-cpus)"
-
-    printf "\n» maximum latency on cpu frequency changes\n%s\n" \
-        "$(cpupower_wrapper --latency --human)"
-
-    printf "\n» performance and frequency capabilities of cppc\n%s\n" \
-        "$(cpupower_wrapper --perf)"
-
-    printf "\n» used cpu kernel driver\n%s\n" \
-        "$(cpupower_wrapper --driver)"
+        | sed "0,/^\b$epp\b/s/^\b$epp\b/$highlight_epp/"
 }
 
 get_pp_info() {
     [ -s "$pp_path" ] \
-        && pp=$(cat "$pp_path")
+        && pp=$(cat "$pp_path") \
+        && highlight_pp=$(highlight_string "$pp")
 
     printf "» generic platform profiles\n"
     printf "%s\n" \
@@ -182,13 +168,13 @@ get_pp_info() {
         "balanced: balance between low power consumption and performance" \
         "balanced-performance: balance between performance and low power consumption" \
         "performance: high performance operation" \
-            | sed "0,/^\b$pp\b/s/^\b$pp\b/$(highlight_string "$pp")/" \
+            | sed "0,/^\b$pp\b/s/^\b$pp\b/$highlight_pp/" \
             | print_table ' ='
 
     printf "\n» available platform profiles\n"
     printf "%s\n" "$pp_available" \
         | tr ' ' '\n' \
-        | sed "0,/^\b$pp\b/s/^\b$pp\b/$(highlight_string "$pp")/"
+        | sed "0,/^\b$pp\b/s/^\b$pp\b/$highlight_pp/"
 }
 
 get_threshold_info() {
@@ -207,6 +193,34 @@ get_threshold_info() {
     printf "end   (charging above value) = %s\n" "$threshold_end_value"
 }
 
+get_frequency_info() {
+    printf "» maximum cpu frequency\n"
+    cpupower_wrapper --hwlimits --human
+
+    printf "\n» current cpu frequency\n"
+    cpupower_wrapper --freq --human
+
+    printf "\n» cpu frequency statistics\n"
+    cpupower_wrapper --stats --human
+
+    printf "\n» maximum latency on cpu frequency changes\n"
+    cpupower_wrapper --latency --human
+
+    printf "\n» cpus run at the same hardware frequency\n"
+    cpupower_wrapper --related-cpus
+
+    printf "\n» cpus need to have their frequency coordinated by software\n"
+    cpupower_wrapper --affected-cpus
+
+    printf "\n» performance and frequency capabilities of cppc\n"
+    cpupower_wrapper --perf
+}
+
+get_boost_info() {
+    printf "» boost state support\n"
+    cpupower_wrapper --boost
+}
+
 set_governor() {
     [ -n "$1" ] \
         && "$auth" cpupower frequency-set --governor \
@@ -215,26 +229,13 @@ set_governor() {
 
 set_epp() {
     [ -n "$1" ] \
-        && for policy in $(find "$policies_path" -maxdepth 1 -type d | sed 1d); do
-            printf "%s\n" "$1" \
-                | cut -d' ' -f3 \
-                | "$auth" tee "$policy/energy_performance_preference" 1>/dev/null
-        done
-}
-
-set_frequency() {
-    printf "%s\n" \
-        "Frequencies can be passed in Hz, kHz, MHz, GHz, or THz (e.g. 1400MHz)." \
-        "Leave blank to avoid making changes."
-    printf "\n\r%s to: " "$1" \
-        && read -r frequency
-    [ -z "$frequency" ] \
-        || "$auth" cpupower frequency-set "$2" "$frequency"
+        && "$auth" cpupower set --epp \
+            "$(printf "%s" "$1" | cut -d' ' -f3)" 1>/dev/null
 }
 
 set_pp() {
     [ -n "$1" ] \
-        && printf "%s\n" "$1" \
+        && printf "%s" "$1" \
             | cut -d' ' -f3 \
             | "$auth" tee "$pp_path" 1>/dev/null
 }
@@ -255,11 +256,21 @@ set_threshold() {
             | "$auth" tee "$threshold_end_path" 1>/dev/null
 }
 
-exit_status() {
-    printf "%s" \
-        "The command exited with status $?. " \
-        "Press ENTER to continue."
-    read -r select
+set_frequency() {
+    printf "%s\n" \
+        "Frequencies can be passed in Hz, kHz, MHz, GHz, or THz (e.g. 1400MHz)." \
+        "Leave blank to avoid making changes."
+    printf "\n\r%s to: " "$1" \
+        && read -r frequency
+    [ -z "$frequency" ] \
+        || "$auth" cpupower frequency-set "$2" "$frequency"
+}
+
+toggle_boost() {
+    [ "$boost" -eq 0 ] \
+        && turbo_boost=1 \
+        || turbo_boost=0
+    "$auth" cpupower set --turbo-boost "$turbo_boost" 1>/dev/null
 }
 
 toggle_cpupower_service() {
@@ -271,28 +282,30 @@ toggle_cpupower_service() {
 }
 
 get_menu_entries() {
-    printf "%s\n" \
-            "set frequency" \
-            "set frequency min" \
-            "set frequency max" \
-            "$(for value in $(cpupower_wrapper --governors); do
-                printf "set governor %s\n" "$value"
-            done)" \
-            "$(for value in $epp_available; do
-                printf "set epp %s\n" "$value"
-            done)" \
-            "$(for value in $pp_available; do
-                printf "set pp %s\n" "$value"
-            done)" \
-            "$([ -s "$threshold_start_path" ] \
-                && printf "set battery threshold\n"
-                )" \
-            "toggle service" \
-            "edit config" \
-        | sed '/^$/d'
+    for value in $(cpupower_wrapper --governors); do
+        printf "set governor %s\n" "$value"
+    done
+    for value in $epp_available; do
+        printf "set epp %s\n" "$value"
+    done
+    for value in $pp_available; do
+        printf "set pp %s\n" "$value"
+    done
+    [ -s "$threshold_start_path" ] \
+        && printf "set battery threshold\n"
+    [ "$governor" = 'userspace' ] \
+        && printf "set frequency\n"
+    printf "set frequency min\n"
+    printf "set frequency max\n"
+    [ -s "$boost_path" ] \
+        && printf "toggle frequency boost\n"
+    printf "toggle service\n"
+    printf "edit config\n"
 }
 
 while true; do
+    [ -s "$governor_path" ] \
+        && governor=$(cat "$governor_path")
     [ -s "$epp_available_path" ] \
         && epp_available=$(cat "$epp_available_path")
     [ -s "$pp_available_path" ] \
@@ -303,6 +316,8 @@ while true; do
     threshold_end_path=$(find "$threshold_path" -path "*$threshold_end")
     [ -s "$threshold_end_path" ] \
         && threshold_end_value=$(cat "$threshold_end_path")
+    [ -s $boost_path ] \
+        && boost=$(cat "$boost_path")
 
     # menu
     select=$(get_menu_entries \
@@ -310,9 +325,6 @@ while true; do
             --bind 'focus:transform-preview-label:echo [ {} ]' \
             --preview-window "right:75%,wrap" \
             --preview "case {} in
-                \"set frequency\"*)
-                    printf \"%s\" \"$(get_frequency_info)\"
-                    ;;
                 \"set governor\"*)
                     printf \"%s\" \"$(get_governor_info)\"
                     ;;
@@ -325,6 +337,12 @@ while true; do
                 \"set battery threshold\")
                     printf \"%s\" \"$(get_threshold_info)\"
                     ;;
+                \"set frequency\"*)
+                    printf \"%s\" \"$(get_frequency_info)\"
+                    ;;
+                \"toggle frequency boost\")
+                    printf \"%s\" \"$(get_boost_info)\"
+                    ;;
                 \"toggle service\")
                     printf \"%s\" \"$($auth systemctl status $service)\"
                     ;;
@@ -336,18 +354,6 @@ while true; do
 
     # select executable
     case "$select" in
-        "set frequency")
-            set_frequency "$select" "-f" \
-                || exit_status
-            ;;
-        "set frequency min")
-            set_frequency "$select" "-d" \
-                || exit_status
-            ;;
-        "set frequency max")
-            set_frequency "$select" "-u" \
-                || exit_status
-            ;;
         "set governor"*)
             set_governor "$select" \
                 || exit_status
@@ -363,6 +369,21 @@ while true; do
         "set battery threshold")
             set_threshold "$select" \
                 || exit_status
+            ;;
+        "set frequency")
+            set_frequency "$select" "--freq" \
+                || exit_status
+            ;;
+        "set frequency min")
+            set_frequency "$select" "--min" \
+                || exit_status
+            ;;
+        "set frequency max")
+            set_frequency "$select" "--max" \
+                || exit_status
+            ;;
+        "toggle frequency boost")
+            toggle_boost
             ;;
         "toggle service")
             toggle_cpupower_service
