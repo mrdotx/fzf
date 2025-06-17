@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-06-10T06:11:21+0200
+# date:   2025-06-17T05:42:49+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -12,6 +12,8 @@ LANG=C
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
 auth="${EXEC_AS_USER:-sudo}"
+
+# config
 config="/etc/default/cpupower"
 service="cpupower.service"
 edit="$EDITOR"
@@ -61,8 +63,9 @@ highlight_string() {
     printf "[%b%s%b]" "$blue" "$@" "$reset"
 }
 
-print_table() {
-    column --separator ':' --output-separator "$1" --table
+write_sysfs_value() {
+    printf "%s" "$1" \
+        | "$auth" tee "$2" 1>/dev/null
 }
 
 exit_status() {
@@ -85,19 +88,27 @@ cpupower_wrapper() {
                 | cut -d'(' -f1 \
                 | sed -e 's/, /\n/g' -e's/:/: /g' \
                 | awk 'NR>1 {$1=$1;print}' \
-                | print_table ' ='
+                | column --separator ':' --output-separator ' =' --table
             ;;
         --boost)
             printf "%s" "$info" \
                 | awk 'NR>2 {$1=$1;print}' \
-                | print_table ' ='
+                | column --separator ':' --output-separator ' =' --table
             ;;
         --perf)
             printf "%s" "$info" \
-                | awk 'NR>2 {$1=$1;print}' \
-                | sed 's/\. /\n/g' \
-                | print_table ' =' \
-                | sed 's/\.$//g'
+                | awk 'NR>2 && NR<7 {$1=$1;print}' \
+                | sed -e 's/\. /: /g' -e 's/\.$//g' \
+                    -e 's/\( Performance\| Frequency\)//g' \
+                | column --separator ':' --output-separator ' |' --table \
+                    --table-right 2,4 \
+                    --table-columns 'Performance, Scale, Frequency, Hz'
+            printf "\n» cppc preferred core capabilities\n"
+            printf "%s" "$info" \
+                | awk 'NR>6 {$1=$1;print}' \
+                | sed -e 's/\. /\n/g' -e 's/\.$//g' \
+                    -e 's/Preferred Core //g' \
+                | column --separator ':' --output-separator ' =' --table
             ;;
         *)
             printf "%s" "$info" \
@@ -119,7 +130,7 @@ get_governor_info() {
         "performance: maximum cpu frequency (scaling_max_freq)" \
         "schedutil: scheduler-driven cpu frequency" \
             | sed "0,/^\b$governor\b/s/^\b$governor\b/$highlight_governor/" \
-            | print_table ' ='
+            | column --separator ':' --output-separator ' =' --table
 
     printf "\n» available governors\n"
     cpupower_wrapper --governors \
@@ -147,7 +158,7 @@ get_epp_info() {
         "balance_power: higher priority on energy efficiency" \
         "power: maximum energy efficiency" \
             | sed "0,/^\b$epp\b/s/^\b$epp\b/$highlight_epp/" \
-            | print_table ' ='
+            | column --separator ':' --output-separator ' =' --table
 
     printf "\n» available energy performance preferences\n"
     printf "%s\n" "$epp_available" \
@@ -169,7 +180,7 @@ get_pp_info() {
         "balanced-performance: balance between performance and low power consumption" \
         "performance: high performance operation" \
             | sed "0,/^\b$pp\b/s/^\b$pp\b/$highlight_pp/" \
-            | print_table ' ='
+            | column --separator ':' --output-separator ' =' --table
 
     printf "\n» available platform profiles\n"
     printf "%s\n" "$pp_available" \
@@ -181,12 +192,12 @@ get_threshold_info() {
     # https://www.ifixit.com/News/31716/how-to-care-for-your-laptops-battery-so-it-lasts-longer
     printf "» recommended battery charge thresholds\n"
     printf "%s\n" \
-        "description: application: start: end" \
-        "maximum runtime (thinkpad default): on the road: 96: 100" \
-        "minimum lifespan improvement: : 85: 90" \
-        "medium lifespan improvement (tlp default): : 75: 80" \
-        "maximum lifespan improvement: plugged in: 40: 50" \
-            | print_table ' |'
+        "full capacity (on the road): thinkpad: 96: 100" \
+        "balanced (capacity and lifespan): tlp: 75: 80" \
+        "maximum lifespan (plugged in): : 40: 50" \
+            | column --separator ':' --output-separator ' |' --table \
+                --table-right 3,4 \
+                --table-columns 'description, default, start, end'
 
     printf "\n» current battery charge thresholds\n"
     printf "start (charging below value) = %s\n" "$threshold_start_value"
@@ -212,7 +223,7 @@ get_frequency_info() {
     printf "\n» cpus need to have their frequency coordinated by software\n"
     cpupower_wrapper --affected-cpus
 
-    printf "\n» performance and frequency capabilities of cppc\n"
+    printf "\n» cppc performance and frequency capabilities\n"
     cpupower_wrapper --perf
 }
 
@@ -235,25 +246,40 @@ set_epp() {
 
 set_pp() {
     [ -n "$1" ] \
-        && printf "%s" "$1" \
-            | cut -d' ' -f3 \
-            | "$auth" tee "$pp_path" 1>/dev/null
+        && set_pp_value=$(printf "%s" "$1" | cut -d' ' -f3) \
+        && write_sysfs_value "$set_pp_value" "$pp_path"
 }
 
 set_threshold() {
-    printf "%s\n" \
-        "Specify the value in percent (0-100). " \
-        "Leave blank to avoid making changes."
-    printf "\n\r%s start from %s to: " "$1" "$threshold_start_value" \
-        && read -r threshold_start_value_new
-    printf "\r%s end from %s to: " "$1" "$threshold_end_value" \
-        && read -r threshold_end_value_new
-    [ -z "$threshold_start_value_new" ] \
-        || printf "%s\n" "$threshold_start_value_new" \
-            | "$auth" tee "$threshold_start_path" 1>/dev/null
-    [ -z "$threshold_end_value_new" ] \
-        || printf "%s\n" "$threshold_end_value_new" \
-            | "$auth" tee "$threshold_end_path" 1>/dev/null
+    [ -n "$1" ] \
+        && set_threshold_value=$(printf "%s" "$1" | cut -d' ' -f4)
+
+    [ -z "$set_threshold_value" ] \
+        && printf "%s\n" \
+            "Specify the start/end value in percent (e.g. 75/80)." \
+            "Values below 40 percent are not recommended." \
+            "Leave blank to avoid making changes." \
+        && printf "\n\r%s from %s/%s to: " \
+            "$1" "$threshold_start_value" "$threshold_end_value"\
+        && read -r set_threshold_value
+
+    set_threshold_start_value=$(printf "%s" "$set_threshold_value" \
+        | cut -d'/' -f1)
+    set_threshold_end_value=$(printf "%s" "$set_threshold_value" \
+        | cut -d'/' -f2)
+
+    [ -z "$set_threshold_start_value" ] \
+        && set_threshold_start_value="$threshold_start_value"
+    [ -z "$set_threshold_end_value" ] \
+        && set_threshold_end_value="$threshold_end_value"
+
+    if [ "$set_threshold_start_value" -gt "$threshold_end_value" ]; then
+        write_sysfs_value "$set_threshold_end_value" "$threshold_end_path"
+        write_sysfs_value "$set_threshold_start_value" "$threshold_start_path"
+    else
+        write_sysfs_value "$set_threshold_start_value" "$threshold_start_path"
+        write_sysfs_value "$set_threshold_end_value" "$threshold_end_path"
+    fi
 }
 
 set_frequency() {
@@ -282,21 +308,26 @@ toggle_cpupower_service() {
 }
 
 get_menu_entries() {
-    for value in $(cpupower_wrapper --governors); do
-        printf "set governor %s\n" "$value"
+    for entry in $(cpupower_wrapper --governors); do
+        printf "set governor %s\n" "$entry"
     done
-    for value in $epp_available; do
-        printf "set epp %s\n" "$value"
+    for entry in $epp_available; do
+        printf "set epp %s\n" "$entry"
     done
-    for value in $pp_available; do
-        printf "set pp %s\n" "$value"
+    for entry in $pp_available; do
+        printf "set pp %s\n" "$entry"
     done
     [ -s "$threshold_start_path" ] \
-        && printf "set battery threshold\n"
+        && printf "%s\n" \
+            "set battery threshold 96/100" \
+            "set battery threshold 75/80" \
+            "set battery threshold 40/50" \
+            "set battery threshold"
+    printf "%s\n" \
+        "set frequency min" \
+        "set frequency max"
     [ "$governor" = 'userspace' ] \
         && printf "set frequency\n"
-    printf "set frequency min\n"
-    printf "set frequency max\n"
     [ -s "$boost_path" ] \
         && printf "toggle frequency boost\n"
     printf "toggle service\n"
@@ -334,7 +365,7 @@ while true; do
                 \"set pp\"*)
                     printf \"%s\" \"$(get_pp_info)\"
                     ;;
-                \"set battery threshold\")
+                \"set battery threshold\"*)
                     printf \"%s\" \"$(get_threshold_info)\"
                     ;;
                 \"set frequency\"*)
@@ -366,12 +397,8 @@ while true; do
             set_pp "$select" \
                 || exit_status
             ;;
-        "set battery threshold")
+        "set battery threshold"*)
             set_threshold "$select" \
-                || exit_status
-            ;;
-        "set frequency")
-            set_frequency "$select" "--freq" \
                 || exit_status
             ;;
         "set frequency min")
@@ -380,6 +407,10 @@ while true; do
             ;;
         "set frequency max")
             set_frequency "$select" "--max" \
+                || exit_status
+            ;;
+        "set frequency")
+            set_frequency "$select" "--freq" \
                 || exit_status
             ;;
         "toggle frequency boost")
