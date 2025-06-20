@@ -3,15 +3,20 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_alsa.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-20T17:16:42+0200
+# date:   2025-06-20T05:09:16+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
 LANG=C
 
+# auth can be something like sudo -A, doas -- or nothing,
+# depending on configuration requirements
+auth="${EXEC_AS_USER:-sudo}"
+
 # config
-config_path="$HOME/.config/alsa"
-config_file="asoundrc"
+alsa_config="$HOME/.config/alsa/asoundrc"
+alsa_state="/var/lib/alsa/asound.state"
+event_cache="$HOME/.cache/event-sound-cache.tdb.*"
 
 # help
 script=$(basename "$0")
@@ -26,11 +31,19 @@ help="$script [-h/--help] -- script to set the default alsa playback device
     && printf "%s\n" "$help" \
     && exit 0
 
+# helper funcitons
+exit_status() {
+    printf "%s" \
+        "The command exited with status $?. " \
+        "Press ENTER to continue."
+    read -r select
+}
+
 set_asoundrc() {
-    mkdir -p "$config_path"
+    mkdir -p "$(dirname "$alsa_config")"
 
     aplay_data=$(aplay -l \
-        | grep "$1"
+        | grep "$(printf "%s" "$1" | cut -d' ' -f3-)"
     )
 
     card=$(printf "%s" "$aplay_data" \
@@ -52,23 +65,81 @@ set_asoundrc() {
         "}" \
         "defaults.ctl {" \
         "    card $card" \
-        "}" > "$config_path/$config_file"
+        "}" > "$alsa_config"
 }
 
-select=$(aplay -l \
-    | grep '^card' \
-    | cut -d'[' -f3 \
-    | tr -d ']' \
-    | fzf --cycle \
-        --bind 'focus:transform-preview-label:echo [ {} ]' \
-        --preview-window "right:75%,wrap" \
-        --preview "printf '%s\n\n**** %s ****\n%s' \
-            \"$(aplay -l)\" \
-            \"$config_file\" \
-            \"$(cat "$config_path/$config_file")\"" \
-)
+get_file_info() {
+    [ -e "$alsa_state" ] \
+        && stat "$alsa_state" \
+        && printf "\n"
+    for tdb in $event_cache; do
+        [ -e "$tdb" ] \
+            && stat "$tdb" \
+            && printf "\n"
+    done
+}
 
-[ -n "$select" ] \
-    && set_asoundrc "$select" \
-    && "$0" \
-        || exit 0
+get_menu_entries() {
+    printf "%s\n" "$devices" \
+        | while IFS= read -r entry; do
+            printf "set device %s\n" "$entry"
+        done
+    printf "%s\n" \
+        "driver state init" \
+        "driver state store" \
+        "driver state restore" \
+        "driver state remove"
+}
+
+while true; do
+    devices=$(aplay -l \
+        | grep '^card' \
+        | cut -d'[' -f3 \
+        | tr -d ']'
+    )
+
+    #menu
+    select=$(get_menu_entries \
+        | fzf --cycle \
+            --bind 'focus:transform-preview-label:echo [ {} ]' \
+            --preview-window "right:75%,wrap" \
+            --preview "case {} in
+            \"driver state remove\")
+                printf \"%s\" \"$(get_file_info)\"
+                ;;
+            \"driver state\"*)
+                printf \"**** %s ****\n%s\" \
+                    \"$alsa_state\" \
+                    \"$([ -e "$alsa_state" ] && cat "$alsa_state")\"
+                ;;
+            \"set device\"*)
+                printf '%s\n\n**** %s ****\n%s' \
+                    \"$(aplay -l)\" \
+                    \"$alsa_config\" \
+                    \"$(cat "$alsa_config")\"
+                ;;
+        esac" \
+    )
+
+    # select executable
+    case "$select" in
+        "driver state remove")
+            [ -e "$alsa_state" ] \
+                && "$auth" rm -i "$alsa_state"
+            for tdb in $event_cache; do
+                [ -e "$tdb" ] \
+                    && rm -i "$tdb"
+            done
+            ;;
+        "driver state"*)
+            "$auth" alsactl "$(printf "%s" "$select" | cut -d' ' -f3-)"
+            ;;
+        "set device"*)
+            set_asoundrc "$select" \
+                || exit_status
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
