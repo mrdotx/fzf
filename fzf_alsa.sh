@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_alsa.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-06-20T05:09:16+0200
+# date:   2025-06-20T05:15:07+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -132,7 +132,8 @@ while true; do
             done
             ;;
         "driver state"*)
-            "$auth" alsactl "$(printf "%s" "$select" | cut -d' ' -f3-)"
+            "$auth" alsactl "$(printf "%s" "$select" | cut -d' ' -f3-)" \
+                || exit_status
             ;;
         "set device"*)
             set_asoundrc "$select" \
