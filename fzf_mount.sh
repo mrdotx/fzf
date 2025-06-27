@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-10-27T07:20:51+0100
+# date:   2025-06-27T05:17:48+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -37,17 +37,17 @@ help="$script [-h/--help] -- script to un-/mount locations/devices
 unmount() {
     case $1 in
         preview)
-            findmnt -lo TARGET,FSTYPE,SOURCE,SIZE \
+            findmnt -lo 'target,fstype,source,size' \
                 | grep "^TARGET\|/mnt\|$mount_dir/"
             ;;
         *)
-            select=$(findmnt -ro TARGET \
+            select=$(findmnt -ro 'target' \
                 | grep "/mnt\|$mount_dir/" \
                 | sort \
             | fzf \
                 --bind 'focus:transform-preview-label:echo [ {} ]' \
                 --preview-window "right:75%" \
-                --preview "findmnt -o TARGET,FSTYPE,SOURCE,SIZE,LABEL -T /{1}" \
+                --preview "findmnt -o 'target,fstype,source,size,label' -T /{1}" \
             )
 
             [ -z "$select" ] \
@@ -65,7 +65,7 @@ unmount() {
 mount_usb() {
     case $1 in
         preview)
-            lsblk -lpo "name,type,fstype,size,mountpoint" \
+            lsblk -lpo 'name,type,fstype,size,mountpoint' \
                 | awk 'NR==1 \
                         || $1!~"/dev/loop"&&$2=="part"&&$5=="" \
                         || $2=="rom"&&$3~"iso"&&$5=="" \
@@ -73,7 +73,7 @@ mount_usb() {
                     {printf "%s\n",$0}'
             ;;
         *)
-            select="$(lsblk -nrpo "name,type,fstype,size,mountpoint" \
+            select="$(lsblk -nrpo 'name,type,fstype,size,mountpoint' \
                 | awk '$1!~"/dev/loop"&&$2=="part"&&$5=="" \
                         || $2=="rom"&&$3~"iso"&&$5=="" \
                         || $4=="1,4M"&&$5=="" \
@@ -88,7 +88,7 @@ mount_usb() {
                 && return 0
 
             mount_point="$mount_dir/$(basename "$select")"
-            partition_type="$(lsblk -no "fstype" "$select")"
+            partition_type="$(lsblk -no 'fstype' "$select")"
 
             [ ! -d "$mount_point" ] \
                 && mkdir "$mount_point" \
@@ -252,7 +252,7 @@ activate_superdrive() {
     case $1 in
         preview)
             if command -v "sg_raw" > /dev/null 2>&1; then \
-                lsblk -lpo "name,type,fstype,size,mountpoint" \
+                lsblk -lpo 'name,type,fstype,size,mountpoint' \
                     | awk 'NR==1 \
                             || $2=="rom" \
                         {printf "%s\n",$0}'
@@ -261,7 +261,7 @@ activate_superdrive() {
             fi
             ;;
         *)
-            select="$(lsblk -nrpo "name,type,fstype" \
+            select="$(lsblk -nrpo 'name,type,fstype' \
                 | awk '$2=="rom" \
                     {printf "%s\n",$1}' \
                 | fzf \
@@ -282,13 +282,13 @@ activate_superdrive() {
 eject_disc() {
     case $1 in
         preview)
-            lsblk -lpo "name,type,fstype,size,mountpoint" \
+            lsblk -lpo 'name,type,fstype,size,mountpoint' \
                 | awk 'NR==1 \
                         || $2=="rom"&&$3~"iso" \
                     {printf "%s\n",$0}'
             ;;
         *)
-            select="$(lsblk -nrpo "name,type,fstype" \
+            select="$(lsblk -nrpo 'name,type,fstype' \
                 | awk '$2=="rom"&&$3~"iso" \
                     {printf "%s\n",$1}' \
                 | fzf \
@@ -328,7 +328,7 @@ case $(printf "%s\n" \
         --preview-window "right:75%" \
         --preview "case {} in
             \"refresh\")
-                lsblk
+                lsblk -o '+label'
                 ;;
             \"unmount device\")
                 printf \"%s\" \"$(unmount preview)\"
