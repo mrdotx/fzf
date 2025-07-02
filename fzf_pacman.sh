@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-11-16T08:12:46+0100
+# date:   2025-07-02T03:29:56+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -26,7 +26,7 @@ pacman_cache_versions=1
 pacman_config="/etc/pacman.conf"
 pacman_mirrors="/etc/pacman.d/mirrorlist"
 pacman_log="/var/log/pacman.log"
-pacman_log_days=180
+pacman_log_days=90
 backup_all="$aur_folder/pkgs_all.txt"
 backup_explicit="$aur_folder/pkgs_explicit.txt"
 
@@ -62,7 +62,7 @@ help="$script [-h/--help] -- script to manage packages with pacman and $aur_help
 
 [ -n "$1" ] \
     && printf "%s\n" "$help" \
-    && exit 0
+    && exit
 
 # helper functions
 log_filter=".*\[ALPM\].*(.*)"
