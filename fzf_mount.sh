@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-06-27T05:17:48+0200
+# date:   2025-07-03T04:18:14+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -32,7 +32,7 @@ help="$script [-h/--help] -- script to un-/mount locations/devices
 
 [ -n "$1" ] \
     && printf "%s\n" "$help" \
-    && exit 0
+    && exit
 
 unmount() {
     case $1 in

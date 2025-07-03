@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_alsa.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-06-20T05:15:07+0200
+# date:   2025-07-03T04:15:48+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -29,7 +29,7 @@ help="$script [-h/--help] -- script to set the default alsa playback device
 
 [ -n "$1" ] \
     && printf "%s\n" "$help" \
-    && exit 0
+    && exit
 
 # helper funcitons
 exit_status() {

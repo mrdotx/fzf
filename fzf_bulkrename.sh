@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_bulkrename.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-11-26T06:44:05+0100
+# date:   2025-07-03T04:16:05+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -78,7 +78,6 @@ bulkrename() {
 case $1 in
     -h | --help)
         printf "%s\n" "$help"
-        exit
         ;;
     --files)
         shift

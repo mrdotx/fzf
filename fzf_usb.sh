@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_usb.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-07-03T08:52:56+0200
+# date:   2025-07-03T04:20:21+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -120,8 +120,7 @@ select_usb() {
 
 case "$1" in
     -h | --help)
-        printf "%s\n" "$help" \
-        && exit 0
+        printf "%s\n" "$help"
         ;;
     --*)
         usb "${1##*--}" "$2"

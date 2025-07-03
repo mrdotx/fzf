@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-06-17T05:42:49+0200
+# date:   2025-07-03T04:16:31+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -52,7 +52,7 @@ help="$script [-h/--help] -- script to manage cpupower
 
 [ -n "$1" ] \
     && printf "%s\n" "$help" \
-    && exit 0
+    && exit
 
 # helper functions
 highlight_string() {
