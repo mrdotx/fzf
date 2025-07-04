@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_man.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-20T17:17:05+0200
+# date:   2025-07-04T04:40:45+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -20,10 +20,9 @@ help="$script [-h/--help] -- script to search and open man pages
 
 [ -n "$1" ] \
     && printf "%s\n" "$help" \
-    && exit 0
+    && exit
 
-select=$(man -k -l '' \
-    | sort -fV \
+select=$(man -k . \
     | fzf +s --query="^" \
         --preview-window "up:75%" \
         --preview "man {1}{2} 2>/dev/null" \
