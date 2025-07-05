@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_virtualbox.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2024-06-20T17:17:29+0200
+# date:   2025-07-05T04:47:21+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -20,9 +20,10 @@ help="$script [-h/--help] -- script to start virtualbox vm
 
 [ -n "$1" ] \
     && printf "%s\n" "$help" \
-    && exit 0
+    && exit
 
 vboxmanage list vms \
+    | grep -v '^"<inaccessible>"' \
     | cut -d '"' -f2 \
     | {
         while IFS= read -r vm; do
