@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-02-17T07:24:18+0100
+# date:   2025-07-09T05:28:17+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -252,6 +252,10 @@ extension_preview() {
 
             printf "%s\n" "$decrypted_file"
             ;;
+        csv)
+            mime_type="text/csv"
+            return
+            ;;
         *)
             return 1
             ;;
@@ -262,7 +266,25 @@ extension_preview() {
 mime_preview() {
     case "$mime_type" in
         */csv)
-            column --separator '	;,' --table "$source_file"
+            count_char() {
+                tr -cd "$1" < "$source_file" | wc -c
+            }
+
+            tabulator="$(count_char '	')"
+            semicolon="$(count_char ';')"
+            comma="$(count_char ',')"
+
+            if [ "$tabulator" -ge "$semicolon" ] \
+                && [ "$tabulator" -ge "$comma" ]; then
+                    separator='	'
+            elif [ "$semicolon" -ge "$tabulator" ] \
+                && [ "$semicolon" -ge "$comma" ]; then
+                    separator=';'
+            else
+                separator=','
+            fi
+
+            column --separator "$separator" --table "$source_file"
             ;;
         *sqlite3)
             sqlite3 -readonly -header -column "$source_file" \
@@ -308,7 +330,6 @@ fallback_preview() {
 case $1 in
     -h | --help)
         printf "%s\n" "$help"
-        exit
         ;;
     --preview)
         shift
