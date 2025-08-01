@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # github: https://github.com/mrdotx/fzf
-# date:   2025-07-03T04:16:31+0200
+# date:   2025-08-01T05:37:32+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -246,8 +246,7 @@ set_epp() {
 
 set_pp() {
     [ -n "$1" ] \
-        && set_pp_value=$(printf "%s" "$1" | cut -d' ' -f3) \
-        && write_sysfs_value "$set_pp_value" "$pp_path"
+        && write_sysfs_value "$(printf "%s" "$1" | cut -d' ' -f3)" "$pp_path"
 }
 
 set_threshold() {
