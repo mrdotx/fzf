@@ -2,8 +2,8 @@
 
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_usb.sh
 # author: klassiker [mrdotx]
-# github: https://github.com/mrdotx/fzf
-# date:   2025-07-03T04:20:21+0200
+# url:    https://github.com/mrdotx/fzf
+# date:   2025-08-09T06:01:42+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C

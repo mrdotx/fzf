@@ -2,8 +2,8 @@
 
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_virtualbox.sh
 # author: klassiker [mrdotx]
-# github: https://github.com/mrdotx/fzf
-# date:   2025-07-05T04:47:21+0200
+# url:    https://github.com/mrdotx/fzf
+# date:   2025-08-09T06:01:46+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C

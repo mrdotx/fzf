@@ -2,8 +2,8 @@
 
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
-# github: https://github.com/mrdotx/fzf
-# date:   2025-07-02T03:29:56+0200
+# url:    https://github.com/mrdotx/fzf
+# date:   2025-08-09T06:01:29+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C

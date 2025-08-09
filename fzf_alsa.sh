@@ -2,8 +2,8 @@
 
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_alsa.sh
 # author: klassiker [mrdotx]
-# github: https://github.com/mrdotx/fzf
-# date:   2025-07-03T04:15:48+0200
+# url:    https://github.com/mrdotx/fzf
+# date:   2025-08-09T06:00:55+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
