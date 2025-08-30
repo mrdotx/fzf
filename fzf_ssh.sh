@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_ssh.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-08-09T06:01:32+0200
+# date:   2025-08-30T05:06:38+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -25,8 +25,8 @@ help="$script [-h/--help] -- script to open configured ssh sessions
 
   Examples:
     $script
-    $script -e m625q sync_notes.sh
-    $script --exec m625q sync_notes.sh"
+    $script -e m625q wiki2web.sh
+    $script --exec m625q wiki2web.sh"
 
 case "$1" in
     -h | --help)
