@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_alsa.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-08-09T06:00:55+0200
+# date:   2025-09-11T05:57:35+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -57,7 +57,13 @@ set_asoundrc() {
         | sed 's/ device //' \
     )
 
+    device_name=$(printf "%s" "$aplay_data" \
+        | cut -d',' -f2 \
+        | cut -d':' -f2 \
+    )
+
     printf "%s\n" \
+        "#$device_name" \
         "defaults.pcm {" \
         "    type hw" \
         "    card $card" \
