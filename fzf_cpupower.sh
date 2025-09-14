@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-08-09T06:01:04+0200
+# date:   2025-09-14T05:57:58+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -198,6 +198,9 @@ get_threshold_info() {
             | column --separator ':' --output-separator ' |' --table \
                 --table-right 3,4 \
                 --table-columns 'description, default, start, end'
+
+    printf "\nit is generally recommended to keep the charge level of lithium\n"
+    printf "batteries between 20%% and 80%% to enhance lifespan and performance.\n"
 
     printf "\n» current battery charge thresholds\n"
     printf "start (charging below value) = %s\n" "$threshold_start_value"
