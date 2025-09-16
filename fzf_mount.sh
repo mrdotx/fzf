@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-08-09T06:01:25+0200
+# date:   2025-09-16T05:37:03+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -46,7 +46,7 @@ unmount() {
                 | sort \
             | fzf \
                 --bind 'focus:transform-preview-label:echo [ {} ]' \
-                --preview-window "right:75%" \
+                --preview-window "right:75%:wrap" \
                 --preview "findmnt -o 'target,fstype,source,size,label' -T /{1}" \
             )
 
@@ -80,7 +80,7 @@ mount_usb() {
                     {printf "%s\n",$1}' \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%" \
+                    --preview-window "right:75%:wrap" \
                     --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
             )"
 
@@ -151,7 +151,7 @@ mount_rclone() {
                 | tr -d ' ' \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%" \
+                    --preview-window "right:75%:wrap" \
                     --preview "printf \"%s\" \"$rclone_config\" \
                         | grep {1} \
                         | sed \"s/^ *//g\"" \
@@ -179,7 +179,7 @@ mount_rclone() {
 }
 
 mount_image() {
-    images=$(find "$image_dir" -maxdepth 1 -type f \
+    images=$(find "$image_dir" -type f \
                 -iname "*.iso" -o \
                 -iname "*.img" -o \
                 -iname "*.bin" -o \
@@ -196,18 +196,14 @@ mount_image() {
                 | sed "s#$image_dir/##g" \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%" \
-                    --preview "printf \"%s\" \"$images\" \
-                        | grep {1} " \
+                    --preview-window "right:75%:wrap" \
+                    --preview "printf \"%s/%s\" \"$image_dir\" {1}" \
             )
 
             [ -z "$select" ] \
                 && return 0
 
-            mount_point="$mount_dir/$select"
-
-            [ ! -d "$mount_point" ] \
-                && mkdir "$mount_point" \
+            mount_point=$(mktemp --directory "$mount_dir/${select##*/}.XXXXXX") \
                 && $auth mount \
                     -o ro,loop \
                     "$image_dir/$select" \
@@ -231,7 +227,7 @@ mount_android() {
                 | cut -d ":" -f1 \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%" \
+                    --preview-window "right:75%:wrap" \
                     --preview "simple-mtpfs --device {1} -l 2>/dev/null" \
             )
 
@@ -266,7 +262,7 @@ activate_superdrive() {
                     {printf "%s\n",$1}' \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%" \
+                    --preview-window "right:75%:wrap" \
                     --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
             )"
 
@@ -293,7 +289,7 @@ eject_disc() {
                     {printf "%s\n",$1}' \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%" \
+                    --preview-window "right:75%:wrap" \
                     --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
             )"
 
@@ -325,7 +321,7 @@ case $(printf "%s\n" \
         "eject disc" \
     | fzf --cycle \
         --bind 'focus:transform-preview-label:echo [ {} ]' \
-        --preview-window "right:75%" \
+        --preview-window "right:75%:wrap" \
         --preview "case {} in
             \"refresh\")
                 lsblk -o '+label'
