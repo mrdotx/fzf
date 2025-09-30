@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-09-16T05:37:03+0200
+# date:   2025-09-30T04:33:08+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -179,7 +179,7 @@ mount_rclone() {
 }
 
 mount_image() {
-    images=$(find "$image_dir" -type f \
+    images=$(find -L "$image_dir" -type f \
                 -iname "*.iso" -o \
                 -iname "*.img" -o \
                 -iname "*.bin" -o \
