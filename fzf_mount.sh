@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-09-30T04:33:08+0200
+# date:   2025-10-01T05:10:51+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -14,8 +14,8 @@ LANG=C
 auth="${EXEC_AS_USER:-sudo}"
 
 # config
-mount_dir="/tmp"
-image_dir="$HOME/Downloads"
+mount_dir="$HOME/Downloads"
+image_dir="$mount_dir"
 
 # help
 script=$(basename "$0")
@@ -46,7 +46,7 @@ unmount() {
                 | sort \
             | fzf \
                 --bind 'focus:transform-preview-label:echo [ {} ]' \
-                --preview-window "right:75%:wrap" \
+                --preview-window "up:75%:wrap" \
                 --preview "findmnt -o 'target,fstype,source,size,label' -T /{1}" \
             )
 
@@ -80,7 +80,7 @@ mount_usb() {
                     {printf "%s\n",$1}' \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%:wrap" \
+                    --preview-window "up:75%:wrap" \
                     --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
             )"
 
@@ -129,6 +129,7 @@ mount_rclone() {
         # rclone config
         webde;          /
         dropbox;        /
+        nextcloud;      /
         gmx;            /
         googledrive;    /
         onedrive;       /
@@ -136,12 +137,13 @@ mount_rclone() {
 
     case $1 in
         preview)
-            if command -v "rclone" > /dev/null 2>&1; then \
+            if command -v "rclone" > /dev/null 2>&1 \
+                && command -v "fusermount3" > /dev/null 2>&1; then \
                 printf "%s" "$rclone_config" \
                     | grep -v -e "^\s*$" \
                     | sed "s/^ *//g"
             else
-                printf "==> this does not work without rclone installed\n"
+                printf "==> this does not work without rclone and fuse3 installed\n"
             fi
             ;;
         *)
@@ -151,7 +153,7 @@ mount_rclone() {
                 | tr -d ' ' \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%:wrap" \
+                    --preview-window "up:75%:wrap" \
                     --preview "printf \"%s\" \"$rclone_config\" \
                         | grep {1} \
                         | sed \"s/^ *//g\"" \
@@ -184,7 +186,8 @@ mount_image() {
                 -iname "*.img" -o \
                 -iname "*.bin" -o \
                 -iname "*.mdf" -o \
-                -iname "*.nrg"
+                -iname "*.nrg" \
+                2>/dev/null \
     )
 
     case $1 in
@@ -196,7 +199,7 @@ mount_image() {
                 | sed "s#$image_dir/##g" \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%:wrap" \
+                    --preview-window "up:75%:wrap" \
                     --preview "printf \"%s/%s\" \"$image_dir\" {1}" \
             )
 
@@ -227,7 +230,7 @@ mount_android() {
                 | cut -d ":" -f1 \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%:wrap" \
+                    --preview-window "up:75%:wrap" \
                     --preview "simple-mtpfs --device {1} -l 2>/dev/null" \
             )
 
@@ -262,7 +265,7 @@ activate_superdrive() {
                     {printf "%s\n",$1}' \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%:wrap" \
+                    --preview-window "up:75%:wrap" \
                     --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
             )"
 
@@ -289,7 +292,7 @@ eject_disc() {
                     {printf "%s\n",$1}' \
                 | fzf \
                     --bind 'focus:transform-preview-label:echo [ {} ]' \
-                    --preview-window "right:75%:wrap" \
+                    --preview-window "up:75%:wrap" \
                     --preview "lsblk -po 'name,type,fstype,fsver,size,label' /{1}" \
             )"
 
@@ -321,7 +324,7 @@ case $(printf "%s\n" \
         "eject disc" \
     | fzf --cycle \
         --bind 'focus:transform-preview-label:echo [ {} ]' \
-        --preview-window "right:75%:wrap" \
+        --preview-window "up:75%:wrap" \
         --preview "case {} in
             \"refresh\")
                 lsblk -o '+label'
