@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-08-09T06:01:29+0200
+# date:   2025-10-21T06:54:45+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -248,16 +248,21 @@ ala_downgrade() {
 }
 
 aur_execute() {
+    list_options="-$1"
+    preview_options="-$2"
+    execute_options="-$3"
+    shift 3
+
     select=$( \
-        eval $aur_helper -"$1" \
+        eval $aur_helper "$list_options" "$*" \
         | fzf -m \
             --preview-window "up:75%:wrap" \
-            --preview "$aur_helper -$2 {1}" \
+            --preview "$aur_helper $preview_options {1}" \
     )
     [ $? -eq 130 ] \
         && return 130
     [ -n "$select" ] \
-        && select="$aur_helper -$3 $select" \
+        && select="$aur_helper $execute_options $select" \
         && $select
 }
 
@@ -277,6 +282,7 @@ while true; do
                 "install packages" \
                 "install arch packages" \
                 "install aur packages" \
+                "search packages" \
                 "remove packages" \
                 "remove explicit installed packages" \
                 "remove packages without dependencies" \
@@ -315,6 +321,9 @@ while true; do
                     ;;
                 \"install aur packages\")
                     \"$aur_helper\" -Slq --aur
+                    ;;
+                \"search packages\")
+                    \"$aur_helper\" -Slq
                     ;;
                 \"remove packages\")
                     \"$aur_helper\" -Qq
@@ -387,6 +396,13 @@ while true; do
             ;;
         "install aur packages")
             aur_execute "Slq --aur" "Sii" "S"
+            exit_status
+            ;;
+        "search packages")
+            printf "search in name and description: " \
+                && read -r search
+            [ -z "$search" ] \
+                || aur_execute "Ssq" "Sii" "S" "$search"
             exit_status
             ;;
         "remove packages")
