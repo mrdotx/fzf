@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-08-09T06:01:08+0200
+# date:   2026-03-12T05:47:33+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -204,7 +204,7 @@ extension_preview() {
             | lz | lzh | lzma | lzo | msi | pkg | rar | rpm | swm | tar | taz \
             | tbz | tbz2 | tgz | tlz | txz | tz2 | tzo | tzst | udf | war | wim \
             | xar | xpi | xz | z | zip | zst)
-                # requires compressor.sh (https://github.com/mrdotx/shell)
+                # REQUIRES: compressor.sh (https://github.com/mrdotx/shell)
                 compressor.sh --list "$source_file"
             ;;
         issue)
