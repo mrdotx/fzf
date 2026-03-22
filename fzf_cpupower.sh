@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-09-14T05:57:58+0200
+# date:   2026-03-22T05:23:15+0100
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -14,7 +14,7 @@ LANG=C
 auth="${EXEC_AS_USER:-sudo}"
 
 # config
-config="/etc/default/cpupower"
+config="/etc/default/cpupower-service.conf"
 service="cpupower.service"
 edit="$EDITOR"
 
