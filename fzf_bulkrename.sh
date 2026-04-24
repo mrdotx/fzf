@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_bulkrename.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-08-09T06:00:59+0200
+# date:   2026-04-24T05:14:47+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -36,14 +36,14 @@ bulkrename() {
     script_file="bulkrename.sh"
 
     # create cache
-    cache_folder=$(mktemp -t -d "fzf_bulkrename.XXXXXX")
-    cat > "$cache_folder/$original_file"
-    [ -s "$cache_folder/$original_file" ] \
+    cache_dir=$(mktemp -t -d "fzf_bulkrename.XXXXXX")
+    cat > "$cache_dir/$original_file"
+    [ -s "$cache_dir/$original_file" ] \
         || return
 
     # modify file names
-    cp -f "$cache_folder/$original_file" "$cache_folder/$modify_file"
-    "$edit" "$cache_folder/$modify_file"
+    cp -f "$cache_dir/$original_file" "$cache_dir/$modify_file"
+    "$edit" "$cache_dir/$modify_file"
 
     # create bulk rename script and process special characters
     # ' -> '\'' | *@#@* -> '
@@ -51,28 +51,28 @@ bulkrename() {
         "#!/bin/sh\n\n" \
         "# This script will be executed when you close the editor.\n" \
         "# Please check everything! Clear the file to abort.\n\n" \
-            > "$cache_folder/$script_file"
+            > "$cache_dir/$script_file"
 
     awk -v cmd="$cmd" 'NR==FNR { a[NR]=$0; next }
         $0!=a[FNR] { print cmd" \\\n\t*@#@*"$0"*@#@* \\\n\t*@#@*"a[FNR]"*@#@*" }' \
-        "$cache_folder/$modify_file" "$cache_folder/$original_file" \
-            >> "$cache_folder/$script_file"
+        "$cache_dir/$modify_file" "$cache_dir/$original_file" \
+            >> "$cache_dir/$script_file"
 
     sed \
         -i -e "s/'/\\'\\\'\'/g" \
         -i -e "s/\*@#@\*/'/g" \
-        "$cache_folder/$script_file"
+        "$cache_dir/$script_file"
 
     # check bulk rename script
-    "$edit" "$cache_folder/$script_file"
+    "$edit" "$cache_dir/$script_file"
 
     # execute bulk rename script
-    chmod 755 "$cache_folder/$script_file"
-    "$cache_folder/$script_file"
+    chmod 755 "$cache_dir/$script_file"
+    "$cache_dir/$script_file"
 
     # delete cache
-    [ -d "$cache_folder" ] \
-        && rm -rf "$cache_folder"
+    [ -d "$cache_dir" ] \
+        && rm -rf "$cache_dir"
 }
 
 case $1 in

@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-10-21T06:54:45+0200
+# date:   2026-04-24T05:15:42+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -18,8 +18,8 @@ display="$PAGER"
 edit="$EDITOR"
 aur_helper="paru"
 aur_cache="$HOME/.cache/$aur_helper/clone"
-aur_folder="$HOME/.config/$aur_helper"
-aur_config="$aur_folder/paru.conf"
+aur_dir="$HOME/.config/$aur_helper"
+aur_config="$aur_dir/paru.conf"
 ala_url="https://archive.archlinux.org/packages"
 pacman_cache="/var/cache/pacman/pkg"
 pacman_cache_versions=1
@@ -27,8 +27,8 @@ pacman_config="/etc/pacman.conf"
 pacman_mirrors="/etc/pacman.d/mirrorlist"
 pacman_log="/var/log/pacman.log"
 pacman_log_days=90
-backup_all="$aur_folder/pkgs_all.txt"
-backup_explicit="$aur_folder/pkgs_explicit.txt"
+backup_all="$aur_dir/pkgs_all.txt"
+backup_explicit="$aur_dir/pkgs_explicit.txt"
 
 # help
 script=$(basename "$0")
@@ -44,7 +44,7 @@ help="$script [-h/--help] -- script to manage packages with pacman and $aur_help
     edit                  = $edit
     aur_helper            = $aur_helper
     aur_cache             = $aur_cache
-    aur_folder            = $aur_folder
+    aur_dir               = $aur_dir
     aur_config            = $aur_config
     ala_url               = $ala_url
     pacman_cache          = $pacman_cache

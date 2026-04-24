@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-03-12T05:47:33+0100
+# date:   2026-04-24T05:15:07+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -111,7 +111,7 @@ get_cache_file() {
     source_path="$(realpath "$source_file")"
     inode_path="$(stat -c '%i' "$source_path")$source_path"
 
-    cache_file="$cache_folder/$(printf "%s" "$inode_path" \
+    cache_file="$cache_dir/$(printf "%s" "$inode_path" \
         | md5sum | cut -d' ' -f1).$1"
 
     [ -s "$cache_file" ]
@@ -185,8 +185,8 @@ image_preview() {
                                                         "value":"1"
                                                     }
                                             }' "$source_file" \
-                            --outdir "$cache_folder/" >/dev/null 2>&1 \
-                        && mv "$cache_folder/$(basename "${source_file%.*}").jpg" \
+                            --outdir "$cache_dir/" >/dev/null 2>&1 \
+                        && mv "$cache_dir/$(basename "${source_file%.*}").jpg" \
                             "$cache_file")
             ;;
         *)
@@ -334,7 +334,7 @@ case $1 in
     --preview)
         shift
         source_file="$1"
-        cache_folder="$2"
+        cache_dir="$2"
         indicator_file="$3"
 
         # file classification
@@ -366,9 +366,9 @@ case $1 in
         ;;
     *)
         # create tmp environment
-        cache_folder="/tmp/fzf_find-$(id -u)"
-        [ -d "$cache_folder" ] || mkdir -m 700 "$cache_folder"
-        indicator_file=$(mktemp -p "$cache_folder" -t ".XXXXXX")
+        cache_dir="/tmp/fzf_find-$(id -u)"
+        [ -d "$cache_dir" ] || mkdir -m 700 "$cache_dir"
+        indicator_file=$(mktemp -p "$cache_dir" -t ".XXXXXX")
 
         # stdin for custom input
         if [ -p /dev/stdin ]; then
@@ -381,7 +381,7 @@ case $1 in
             | fzf -m +s \
                 --preview-label="[ $(pwd) ]" \
                 --preview-window "up:$preview_height%" \
-                --preview "$0 --preview {} $cache_folder $indicator_file"
+                --preview "$0 --preview {} $cache_dir $indicator_file"
 
         # move exit status after indicator file deletion
         error=$?
