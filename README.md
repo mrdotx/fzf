@@ -14,7 +14,7 @@ shell scripts for fzf
 | fzf_mount.sh      | un-/mount remote, usb and android locations/devices               |
 | fzf_pacman.sh     | manage packages with pacman and paru                              |
 | fzf_ssh.sh        | open configured ssh sessions                                      |
-| fzf_trash.sh      | manage files/folders with trash-cli                               |
+| fzf_trash.sh      | manage files/directories with trash-cli                           |
 | fzf_usb.sh        | manage usb devices                                                |
 | fzf_virtualbox.sh | start a virtual machine without virtualbox frontend               |
 

@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-08-09T06:01:38+0200
+# date:   2026-04-29T05:08:59+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -14,7 +14,7 @@ edit="$EDITOR"
 
 # help
 script=$(basename "$0")
-help="$script [-h/--help] -- script to manage files/folders with trash-cli
+help="$script [-h/--help] -- script to manage files/directories with trash-cli
   Usage:
     $script
 

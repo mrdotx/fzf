@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_git_commit.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-08-09T06:01:11+0200
+# date:   2026-04-29T05:08:43+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -18,7 +18,7 @@ help="$script [-h/--help] -- script to show/checkout commits for files or
 
   Settings:
     [--log]   = show commit logs
-    [--reset] = reset all commits in the current repository folder
+    [--reset] = reset all commits in the current repository directory
 
   Examples:
     $script <path/file>
@@ -50,14 +50,14 @@ git_commit() {
 }
 
 git_commit_reset() {
-    printf "\rDelete all commits in the current respository folder (YES): " \
+    printf "\rDelete all commits in the current respository directory (YES): " \
         && read -r "key"
     case "$key" in
         YES)
             printf "1) Create orphan branch...\n"
             git checkout --orphan latest_branch
 
-            printf "2) Add all the files and folders...\n"
+            printf "2) Add all the files and directories...\n"
             git add -A
 
             printf "3) Commit the changes...\n"
