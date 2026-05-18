@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-04-24T05:15:42+0200
+# date:   2026-05-18T05:27:07+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -102,6 +102,11 @@ get_mirrors_date() {
         || printf "unreachable"
 }
 
+round() {
+    # WORKAROUND: printf "%.0f" not completely converted in the dash shell
+    awk "BEGIN {printf \"%.$1f\", $2}"
+}
+
 get_mirrors_data() {
     output=$(curl -Ls -m 9.99 -w "%{time_total} %{http_code}" -o /dev/null \
         "$1/core/os/$(uname -m)/core.db.tar.gz" \
@@ -121,8 +126,8 @@ get_mirrors_data() {
         && printf "                       http %s" "$code" \
         && return
 
-    printf "%.5f %s %s\n" \
-        "$(printf "%s\n" "$output" | cut -d ' ' -f1)" \
+    round 5 "$(printf "%s\n" "$output" | cut -d ' ' -f1)"
+    printf " %s %s\n" \
         "$(get_mirrors_date "$url/lastsync")" \
         "$(get_mirrors_date "$url/lastupdate")"
 }
@@ -142,11 +147,12 @@ get_mirror_status() {
         && printf "n/a\n" \
         && return
 
-    [ "$(printf "%.0f" "$output")" -gt 99 ] \
+    [ "$(round 0 "$output")" -gt 99 ] \
         && printf "bad\n" \
         && return
 
-    printf "%.2f\n" "$output"
+    round 2 "$output"
+    printf "\n"
 }
 
 analyze_mirrors() {
