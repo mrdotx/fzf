@@ -3,7 +3,7 @@
 # path:   /home/klassiker/.local/share/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-04-24T05:15:07+0200
+# date:   2026-07-07T04:53:03+0200
 
 # speed up script and avoid language problems by using standard c
 LC_ALL=C
@@ -199,11 +199,11 @@ image_preview() {
 
 extension_preview() {
     case "$file_extension" in
-        7z | a | alz | apk | arj | bz | bz2 | bzip2 | cab | cb7 | cbt | chm \
-            | chw | cpio | deb | dmg | gz | gzip | hxs | img | iso | jar | lha \
-            | lz | lzh | lzma | lzo | msi | pkg | rar | rpm | swm | tar | taz \
-            | tbz | tbz2 | tgz | tlz | txz | tz2 | tzo | tzst | udf | war | wim \
-            | xar | xpi | xz | z | zip | zst)
+        7z | a | alz | apk | arj | bz | bz2 | bzip2 | cab | cb7 | cbr | cbt \
+            | cbz | chm | chw | cpio | deb | dmg | gz | gzip | hxs | img | iso \
+            | jar | lha | lz | lzh | lzma | lzo | msi | pkg | rar | rpm | swm \
+            | tar | taz | tbz | tbz2 | tgz | tlz | txz | tz2 | tzo | tzst | udf \
+            | war | wim | xar | xpi | xz | z | zip | zst)
                 # REQUIRES: compressor.sh (https://github.com/mrdotx/shell)
                 compressor.sh --list "$source_file"
             ;;
