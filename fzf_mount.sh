@@ -1,13 +1,9 @@
 #!/bin/sh
 
-# path:   /home/klassiker/.local/share/repos/fzf/fzf_mount.sh
+# path:   /home/klassiker/Projects/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-10-06T05:16:08+0200
-
-# speed up script and avoid language problems by using standard c
-LC_ALL=C
-LANG=C
+# date:   2026-07-13T03:37:11+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -128,11 +124,11 @@ mount_rclone() {
     rclone_config="
         # rclone config
         webde;          /
-        dropbox;        /
-        nextcloud;      /
         gmx;            /
-        googledrive;    /
+        nextcloud;      /
+        dropbox;        /
         onedrive;       /
+        googledrive;    /
     "
 
     case $1 in

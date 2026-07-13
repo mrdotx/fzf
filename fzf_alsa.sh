@@ -1,13 +1,9 @@
 #!/bin/sh
 
-# path:   /home/klassiker/.local/share/repos/fzf/fzf_alsa.sh
+# path:   /home/klassiker/Projects/repos/fzf/fzf_alsa.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-09-11T05:57:35+0200
-
-# speed up script and avoid language problems by using standard c
-LC_ALL=C
-LANG=C
+# date:   2026-07-13T03:36:32+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements

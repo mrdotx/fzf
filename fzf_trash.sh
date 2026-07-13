@@ -1,13 +1,9 @@
 #!/bin/sh
 
-# path:   /home/klassiker/.local/share/repos/fzf/fzf_trash.sh
+# path:   /home/klassiker/Projects/repos/fzf/fzf_trash.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-04-29T05:08:59+0200
-
-# speed up script and avoid language problems by using standard c
-LC_ALL=C
-LANG=C
+# date:   2026-07-13T03:37:26+0200
 
 # config
 edit="$EDITOR"

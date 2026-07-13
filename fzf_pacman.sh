@@ -1,20 +1,16 @@
 #!/bin/sh
 
-# path:   /home/klassiker/.local/share/repos/fzf/fzf_pacman.sh
+# path:   /home/klassiker/Projects/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-05-18T05:27:07+0200
-
-# speed up script and avoid language problems by using standard c
-LC_ALL=C
-LANG=C
+# date:   2026-07-13T03:37:17+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
 auth="${EXEC_AS_USER:-sudo}"
 
 # config
-display="$PAGER"
+view="$PAGER"
 edit="$EDITOR"
 aur_helper="paru"
 aur_cache="$HOME/.cache/$aur_helper/clone"
@@ -40,7 +36,7 @@ help="$script [-h/--help] -- script to manage packages with pacman and $aur_help
     $script
 
   Config:
-    display               = $display
+    view                  = $view
     edit                  = $edit
     aur_helper            = $aur_helper
     aur_cache             = $aur_cache
@@ -386,7 +382,7 @@ while true; do
     # select executable
     case "$select" in
         "view pacman.log")
-            tac "$pacman_log" | "$display"
+            tac "$pacman_log" | "$view"
             ;;
         "system upgrade")
             "$aur_helper" -Syu

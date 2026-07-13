@@ -1,13 +1,9 @@
 #!/bin/sh
 
-# path:   /home/klassiker/.local/share/repos/fzf/fzf_ssh.sh
+# path:   /home/klassiker/Projects/repos/fzf/fzf_ssh.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-08-30T05:06:38+0200
-
-# speed up script and avoid language problems by using standard c
-LC_ALL=C
-LANG=C
+# date:   2026-07-13T03:37:21+0200
 
 # config
 ssh_config="$HOME/.ssh/config"
@@ -72,14 +68,8 @@ case "$1" in
                     "$edit" "$ssh_config"
                     ;;
                 *)
-                    session=$(printf "%s" "$select" | wc -w)
-
                     for host in $select; do
-                        session=$((session-1))
-                        [ $session -ge 0 ] && [ -n "$DISPLAY" ] \
-                            && $TERMINAL -T "ssh $host" -e ssh "$host"
-                        [ $session -eq 0 ] && [ -z "$DISPLAY" ] \
-                            && ssh "$host"
+                        ssh "$host"
                     done
                     break
                     ;;

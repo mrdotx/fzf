@@ -1,13 +1,9 @@
 #!/bin/sh
 
-# path:   /home/klassiker/.local/share/repos/fzf/fzf_cpupower.sh
+# path:   /home/klassiker/Projects/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-03-22T05:23:15+0100
-
-# speed up script and avoid language problems by using standard c
-LC_ALL=C
-LANG=C
+# date:   2026-07-13T03:36:41+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements

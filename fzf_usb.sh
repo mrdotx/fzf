@@ -1,13 +1,9 @@
 #!/bin/sh
 
-# path:   /home/klassiker/.local/share/repos/fzf/fzf_usb.sh
+# path:   /home/klassiker/Projects/repos/fzf/fzf_usb.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2025-08-09T06:01:42+0200
-
-# speed up script and avoid language problems by using standard c
-LC_ALL=C
-LANG=C
+# date:   2026-07-13T03:37:30+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -17,7 +13,7 @@ auth="${EXEC_AS_USER:-sudo}"
 script=$(basename "$0")
 help="$script [-h/--help] -- script to manage usb devices
   Usage:
-    $script [--bind/--unbind/--rebind]
+    $script [--bind|--unbind|--rebind]
 
   Settings:
     [--bind]   = try to bind logical device
