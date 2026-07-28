@@ -3,7 +3,7 @@
 # path:   /home/klassiker/Projects/repos/fzf/fzf_mount.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-07-13T03:37:11+0200
+# date:   2026-07-28T03:55:01+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -12,6 +12,7 @@ auth="${EXEC_AS_USER:-sudo}"
 # config
 mount_dir="$HOME/Templates"
 image_dir="$HOME/Downloads"
+edit="$EDITOR"
 
 # help
 script=$(basename "$0")
@@ -301,6 +302,33 @@ eject_disc() {
     esac
 }
 
+smart_status() {
+    case $1 in
+        preview)
+            if command -v "smartctl" > /dev/null 2>&1; then \
+                $auth smartctl --scan
+            else
+                printf "==> this does not work without smartmontools installed\n"
+            fi
+            ;;
+        *)
+            select=$($auth smartctl --scan \
+                | cut -d "#" -f1 \
+                | fzf \
+                    --bind 'focus:transform-preview-label:echo [ {} ]' \
+                    --preview-window "up:75%:wrap" \
+                    --preview "$auth smartctl --xall {1}" \
+            )
+
+            [ -z "$select" ] \
+                && return 0
+
+            eval "$auth smartctl --xall $select" \
+                | $edit
+            ;;
+    esac
+}
+
 exit_status() {
     printf "%s" \
         "The command exited with status $?. " \
@@ -316,6 +344,7 @@ case $(printf "%s\n" \
         "mount rclone" \
         "mount image" \
         "mount android" \
+        "s.m.a.r.t. status" \
         "activate superdrive" \
         "eject disc" \
     | fzf --cycle \
@@ -339,6 +368,9 @@ case $(printf "%s\n" \
                 ;;
             \"mount android\")
                 printf \"%s\" \"$(mount_android preview)\"
+                ;;
+            \"s.m.a.r.t. status\")
+                printf \"%s\" \"$(smart_status preview)\"
                 ;;
             \"activate superdrive\")
                 printf \"%s\" \"$(activate_superdrive preview)\"
@@ -373,6 +405,11 @@ case $(printf "%s\n" \
         ;;
     "mount android")
         mount_android \
+            || exit_status
+        "$0"
+        ;;
+    "s.m.a.r.t. status")
+        smart_status \
             || exit_status
         "$0"
         ;;
