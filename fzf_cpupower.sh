@@ -3,7 +3,7 @@
 # path:   /home/klassiker/Projects/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-07-13T03:36:41+0200
+# date:   2026-07-31T03:20:11+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -335,8 +335,9 @@ get_menu_entries() {
 while true; do
     [ -s "$governor_path" ] \
         && governor=$(cat "$governor_path")
+    # WORKAROUND: invalid argument when setting the epp value custom
     [ -s "$epp_available_path" ] \
-        && epp_available=$(cat "$epp_available_path")
+        && epp_available=$(cat "$epp_available_path" | sed 's/custom//')
     [ -s "$pp_available_path" ] \
         && pp_available=$(cat "$pp_available_path")
     threshold_start_path=$(find "$threshold_path" -path "*$threshold_start")
