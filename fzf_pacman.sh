@@ -3,7 +3,7 @@
 # path:   /home/klassiker/Projects/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-07-13T03:37:17+0200
+# date:   2026-08-11T03:10:31+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -108,7 +108,7 @@ get_mirrors_data() {
         "$1/core/os/$(uname -m)/core.db.tar.gz" \
     )
     [ $? -eq 28 ] \
-        && printf "                        timeout" \
+        && printf "                    timeout    " \
         && return
 
     code=$(printf "%s\n" "$output" \
@@ -116,10 +116,10 @@ get_mirrors_data() {
     )
 
     [ "$code" -eq 000 ] \
-        && printf "                        unknown" \
+        && printf "                    unknown    " \
         && return
     [ "$code" -ne 200 ] \
-        && printf "                       http %s" "$code" \
+        && printf "                    http %s   " "$code" \
         && return
 
     round 5 "$(printf "%s\n" "$output" | cut -d ' ' -f1)"
