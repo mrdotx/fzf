@@ -3,7 +3,7 @@
 # path:   /home/klassiker/Projects/repos/fzf/fzf_find.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-07-13T03:36:45+0200
+# date:   2026-08-29T03:30:04+0200
 
 # config
 w3mimgdisplay="/usr/lib/w3m/w3mimgdisplay"
@@ -72,7 +72,7 @@ preview_pane() {
                 "$image_width" \
                 "$image_height" \
                 "$(du -Hh "$source_file" | cut -f1)" \
-                "$(date '+%d.%m.%Y %H:%M' -r "$source_file")" \
+                "$(date '+%d.%m.%Y %H:%M:%S' -r "$source_file")" \
                 "\033[0m"
 
             # calculate image dimensions for the preview
