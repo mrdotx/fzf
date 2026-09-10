@@ -3,7 +3,7 @@
 # path:   /home/klassiker/Projects/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-07-31T03:20:11+0200
+# date:   2026-09-10T05:12:15+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -36,19 +36,19 @@ threshold_end="/power_supply/BAT0/charge_control_end_threshold"
 script=$(basename "$0")
 help="$script [-h/--help] -- script to manage cpupower
   Usage:
-    $script
+    $script [--toggle] <governor1> <governor2>
+
+  Settings:
+    [--toggle] = toggle the scaling governor
 
   Examples:
     $script
+    $script --toggle schedutil powersave
 
   Config:
     config  = $config
     service = $service
     edit    = $edit"
-
-[ -n "$1" ] \
-    && printf "%s\n" "$help" \
-    && exit
 
 # helper functions
 highlight_string() {
@@ -237,6 +237,12 @@ set_governor() {
             "$(printf "%s" "$1" | cut -d' ' -f3)" 1>/dev/null
 }
 
+toggle_governor() {
+    [ -n "$1" ] \
+        && cpupower frequency-set --governor "$1" 1>/dev/null \
+        && printf "scaling governor set to %s" "$1"
+}
+
 set_epp() {
     [ -n "$1" ] \
         && "$auth" cpupower set --epp \
@@ -332,97 +338,121 @@ get_menu_entries() {
     printf "edit config\n"
 }
 
-while true; do
-    [ -s "$governor_path" ] \
-        && governor=$(cat "$governor_path")
-    # WORKAROUND: invalid argument when setting the epp value custom
-    [ -s "$epp_available_path" ] \
-        && epp_available=$(cat "$epp_available_path" | sed 's/custom//')
-    [ -s "$pp_available_path" ] \
-        && pp_available=$(cat "$pp_available_path")
-    threshold_start_path=$(find "$threshold_path" -path "*$threshold_start")
-    [ -s "$threshold_start_path" ] \
-        && threshold_start_value=$(cat "$threshold_start_path")
-    threshold_end_path=$(find "$threshold_path" -path "*$threshold_end")
-    [ -s "$threshold_end_path" ] \
-        && threshold_end_value=$(cat "$threshold_end_path")
-    [ -s $boost_path ] \
-        && boost=$(cat "$boost_path")
+case $1 in
+    -h | --help)
+        printf "%s\n" "$help"
+        exit
+        ;;
+    --toggle)
+        shift
 
-    # menu
-    select=$(get_menu_entries \
-        | fzf --cycle \
-            --bind 'focus:transform-preview-label:echo [ {} ]' \
-            --preview-window "right:75%,wrap" \
-            --preview "case {} in
-                \"set governor\"*)
-                    printf \"%s\" \"$(get_governor_info)\"
-                    ;;
-                \"set epp\"*)
-                    printf \"%s\" \"$(get_epp_info)\"
-                    ;;
-                \"set pp\"*)
-                    printf \"%s\" \"$(get_pp_info)\"
-                    ;;
-                \"set battery threshold\"*)
-                    printf \"%s\" \"$(get_threshold_info)\"
-                    ;;
-                \"set frequency\"*)
-                    printf \"%s\" \"$(get_frequency_info)\"
-                    ;;
-                \"toggle frequency boost\")
-                    printf \"%s\" \"$(get_boost_info)\"
-                    ;;
-                \"toggle service\")
-                    printf \"%s\" \"$($auth systemctl status $service)\"
-                    ;;
-                \"edit config\")
-                    cat \"$config\"
-                    ;;
-                esac" \
-    )
+        [ "$(id -u)" -ne 0 ] \
+            && printf "root privileges are needed to toggle the scaling governor\n" \
+            && exit 1
 
-    # select executable
-    case "$select" in
-        "set governor"*)
-            set_governor "$select" \
-                || exit_status
-            ;;
-        "set epp"*)
-            set_epp "$select" \
-                || exit_status
-            ;;
-        "set pp"*)
-            set_pp "$select" \
-                || exit_status
-            ;;
-        "set battery threshold"*)
-            set_threshold "$select" \
-                || exit_status
-            ;;
-        "set frequency min")
-            set_frequency "$select" "--min" \
-                || exit_status
-            ;;
-        "set frequency max")
-            set_frequency "$select" "--max" \
-                || exit_status
-            ;;
-        "set frequency")
-            set_frequency "$select" "--freq" \
-                || exit_status
-            ;;
-        "toggle frequency boost")
-            toggle_boost
-            ;;
-        "toggle service")
-            toggle_cpupower_service
-            ;;
-        "edit config")
-            "$auth" "$edit" "$config"
-            ;;
-        *)
-            break
-            ;;
-    esac
-done
+        case $(cat "$governor_path") in
+            "$1")
+                toggle_governor "$2"
+                ;;
+            "$2")
+                toggle_governor "$1"
+                ;;
+        esac
+        ;;
+    *)
+        while true; do
+            [ -s "$governor_path" ] \
+                && governor=$(cat "$governor_path")
+            # WORKAROUND: invalid argument when setting the epp value custom
+            [ -s "$epp_available_path" ] \
+                && epp_available=$(cat "$epp_available_path" | sed 's/custom//')
+            [ -s "$pp_available_path" ] \
+                && pp_available=$(cat "$pp_available_path")
+            threshold_start_path=$(find "$threshold_path" -path "*$threshold_start")
+            [ -s "$threshold_start_path" ] \
+                && threshold_start_value=$(cat "$threshold_start_path")
+            threshold_end_path=$(find "$threshold_path" -path "*$threshold_end")
+            [ -s "$threshold_end_path" ] \
+                && threshold_end_value=$(cat "$threshold_end_path")
+            [ -s $boost_path ] \
+                && boost=$(cat "$boost_path")
+
+            # menu
+            select=$(get_menu_entries \
+                | fzf --cycle \
+                    --bind 'focus:transform-preview-label:echo [ {} ]' \
+                    --preview-window "right:75%,wrap" \
+                    --preview "case {} in
+                        \"set governor\"*)
+                            printf \"%s\" \"$(get_governor_info)\"
+                            ;;
+                        \"set epp\"*)
+                            printf \"%s\" \"$(get_epp_info)\"
+                            ;;
+                        \"set pp\"*)
+                            printf \"%s\" \"$(get_pp_info)\"
+                            ;;
+                        \"set battery threshold\"*)
+                            printf \"%s\" \"$(get_threshold_info)\"
+                            ;;
+                        \"set frequency\"*)
+                            printf \"%s\" \"$(get_frequency_info)\"
+                            ;;
+                        \"toggle frequency boost\")
+                            printf \"%s\" \"$(get_boost_info)\"
+                            ;;
+                        \"toggle service\")
+                            printf \"%s\" \"$($auth systemctl status $service)\"
+                            ;;
+                        \"edit config\")
+                            cat \"$config\"
+                            ;;
+                        esac" \
+            )
+
+            # select executable
+            case "$select" in
+                "set governor"*)
+                    set_governor "$select" \
+                        || exit_status
+                    ;;
+                "set epp"*)
+                    set_epp "$select" \
+                        || exit_status
+                    ;;
+                "set pp"*)
+                    set_pp "$select" \
+                        || exit_status
+                    ;;
+                "set battery threshold"*)
+                    set_threshold "$select" \
+                        || exit_status
+                    ;;
+                "set frequency min")
+                    set_frequency "$select" "--min" \
+                        || exit_status
+                    ;;
+                "set frequency max")
+                    set_frequency "$select" "--max" \
+                        || exit_status
+                    ;;
+                "set frequency")
+                    set_frequency "$select" "--freq" \
+                        || exit_status
+                    ;;
+                "toggle frequency boost")
+                    toggle_boost
+                    ;;
+                "toggle service")
+                    toggle_cpupower_service
+                    ;;
+                "edit config")
+                    "$auth" "$edit" "$config"
+                    ;;
+                *)
+                    break
+                    ;;
+            esac
+        done
+        ;;
+esac
