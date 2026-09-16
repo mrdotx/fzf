@@ -3,7 +3,7 @@
 # path:   /home/klassiker/Projects/repos/fzf/fzf_cpupower.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-09-10T05:12:15+0200
+# date:   2026-09-16T05:16:05+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -190,7 +190,7 @@ get_threshold_info() {
     printf "%s\n" \
         "full capacity (on the road): thinkpad: 96: 100" \
         "balanced (capacity and lifespan): tlp: 75: 80" \
-        "maximum lifespan (plugged in): : 40: 50" \
+        "maximum lifespan (plugged in): : 65: 75" \
             | column --separator ':' --output-separator ' |' --table \
                 --table-right 3,4 \
                 --table-columns 'description, default, start, end'
@@ -260,7 +260,7 @@ set_threshold() {
 
     [ -z "$set_threshold_value" ] \
         && printf "%s\n" \
-            "Specify the start/end value in percent (e.g. 75/80)." \
+            "Specify the start/end value in percent (e.g. 70/80)." \
             "Values below 40 percent are not recommended." \
             "Leave blank to avoid making changes." \
         && printf "\n\r%s from %s/%s to: " \
@@ -325,7 +325,7 @@ get_menu_entries() {
         && printf "%s\n" \
             "set battery threshold 96/100" \
             "set battery threshold 75/80" \
-            "set battery threshold 40/50" \
+            "set battery threshold 65/75" \
             "set battery threshold"
     printf "%s\n" \
         "set frequency min" \
