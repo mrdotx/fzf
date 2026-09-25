@@ -3,7 +3,7 @@
 # path:   /home/klassiker/Projects/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-08-11T03:10:31+0200
+# date:   2026-09-25T05:14:45+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -83,6 +83,24 @@ log_clear() {
                         "+[%Y-%m-%dT%H:%M:%S+0000]")" \
                         '$1 > Date {print $0}' "$pacman_log_bak" \
                     | "$auth" tee "$pacman_log" >/dev/null
+            ;;
+    esac
+}
+
+cache_dir_clear() {
+    cache_dirs=$("$auth" find "$pacman_cache" \
+        -mindepth 1 -maxdepth 1 -type d -name 'download-*' -empty)
+
+    [ -n "$cache_dirs" ] \
+        || return 0
+
+    printf "Delete download directories from pacman cache? [y]es/[N]o: " \
+        && read -r clear_cache_dir
+
+    case $clear_cache_dir in
+        y|Y|yes|Yes)
+            "$auth" find "$pacman_cache" \
+                -mindepth 1 -maxdepth 1 -type d -name 'download-*' -empty -delete
             ;;
     esac
 }
@@ -461,6 +479,9 @@ while true; do
             "$aur_helper" -c
             ;;
         *)
+            # WORKAROUND: paru leaves tmp directories in cache
+            cache_dir_clear
+
             pkg_lists_backup
             break
             ;;
