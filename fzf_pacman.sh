@@ -3,7 +3,7 @@
 # path:   /home/klassiker/Projects/repos/fzf/fzf_pacman.sh
 # author: klassiker [mrdotx]
 # url:    https://github.com/mrdotx/fzf
-# date:   2026-09-25T05:14:45+0200
+# date:   2026-09-27T05:34:32+0200
 
 # auth can be something like sudo -A, doas -- or nothing,
 # depending on configuration requirements
@@ -89,18 +89,18 @@ log_clear() {
 
 cache_dir_clear() {
     cache_dirs=$("$auth" find "$pacman_cache" \
-        -mindepth 1 -maxdepth 1 -type d -name 'download-*' -empty)
+        -type d -name 'download-*' -empty -print -quit)
 
     [ -n "$cache_dirs" ] \
         || return 0
 
-    printf "Delete download directories from pacman cache? [y]es/[N]o: " \
+    printf "Delete download dirs from cache? [y]es/[N]o: " \
         && read -r clear_cache_dir
 
     case $clear_cache_dir in
         y|Y|yes|Yes)
             "$auth" find "$pacman_cache" \
-                -mindepth 1 -maxdepth 1 -type d -name 'download-*' -empty -delete
+                -type d -name 'download-*' -empty -delete
             ;;
     esac
 }
@@ -316,6 +316,7 @@ while true; do
                 "analyze pacman mirrors" \
                 "diff package config" \
                 "clear pacman.log" \
+                "clear download dirs from cache" \
                 "clear package cache" \
         | fzf --cycle \
             --bind 'focus:transform-preview-label:echo [ {} ]' \
@@ -385,6 +386,12 @@ while true; do
                     ;;
                 \"clear pacman.log\")
                     cat \"$pacman_log\"
+                    ;;
+                \"clear download dirs from cache\")
+                    printf \":: current download directories\n\"
+                    \"$auth\" find \"$pacman_cache\" \
+                            -type d -name \"download-*\" -empty \
+                        | sort
                     ;;
                 \"clear package cache\")
                     printf \":: old packages\n\"
@@ -473,15 +480,16 @@ while true; do
             log_clear
             "$auth" "$edit" "$pacman_log"
             ;;
+        "clear download dirs from cache")
+            # WORKAROUND: paru leaves tmp download dirs in cache
+            cache_dir_clear
+            ;;
         "clear package cache")
             "$auth" paccache -rvk$pacman_cache_versions
             "$auth" paccache -rvuk0
             "$aur_helper" -c
             ;;
         *)
-            # WORKAROUND: paru leaves tmp directories in cache
-            cache_dir_clear
-
             pkg_lists_backup
             break
             ;;
